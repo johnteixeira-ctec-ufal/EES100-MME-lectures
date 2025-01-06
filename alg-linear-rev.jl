@@ -475,7 +475,6 @@ $$\mathcal{T}:\mathbb{R}^m\rightarrow\mathbb{R}^m\qquad\mathcal{T}(x) = \begin{p
 
 # ╔═╡ 6d08831e-9b10-4bdf-b324-bbb8b2b5b7eb
 begin
-	angle = range(0,360,21);
 	md"""
 	x: $(@bind x0 Slider(a, show_value=true))
 	y: $(@bind x1 Slider(a, show_value=true, default=0))	
@@ -496,7 +495,7 @@ Outra aplicação da matriz transformação, reside na construção da matriz de
 
 Seja o sistema de dois graus de liberdade mostrado na Figura abaixo:
 
-![sys2DOF](https://www.researchgate.net/profile/Marco-Faria/publication/294889796/figure/fig2/AS:388500139593740@1469637059848/Figura-5-Sistema-massa-mola-de-dois-graus-de-liberdade.png)
+![sys2DOF](https://miro.medium.com/v2/resize:fit:1400/format:webp/1*tkCUQCaE-kG9rTKavRs6bQ.png)
 
 Como as forças da mola equilibram os blocos na posição de equilíbrio estático. Sem perda de generalidade, assumimos que $x_2 > x_1$ na posição de equilíbrio estático, tem-se, de
 
