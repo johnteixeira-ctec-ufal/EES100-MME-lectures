@@ -232,6 +232,48 @@ let
 	zlabel!(plt[1], "f(z₀,z₁)")
 end
 
+# ╔═╡ afda5903-bad4-42eb-941b-9f02b3205b54
+begin
+	md"""
+	pontos de partida:  
+	x₁: $(@bind x₁ Slider(a, show_value=true, default=-1)) $$\qquad$$
+	x₂: $(@bind x₂ Slider(a, show_value=true, default=-1))
+	"""	
+end
+
+# ╔═╡ 0a56c378-9351-4e13-b159-9dfbcee7a1e0
+let
+	# start point
+	n = 1
+	x1 = zeros(100); x1[1] = x₁
+	x2 = zeros(100); x2[1] = x₂
+	for i=1:100
+		error = sqrt(x₁^2 + x₂^2)
+		if error < 1e-9 || n > 99
+			break
+		end
+		# linesearch algorithm
+		α = (α₁^2 * x₁^2 + α₂^2 * x₂^2) / (α₁^3 * x₁^2 + α₂^3 * x₂^2)
+		g₁ = α₁ * x₁
+		g₂ = α₂ * x₂
+		x₁ = x₁ - α * g₁
+		x₂ = x₂ - α * g₂
+		n = n + 1
+		x1[n] = x₁
+		x2[n] = x₂
+	end
+	x = range(-2, 2, length=101)
+	fx1x2 = α₁ .* x'.^2 .+ α₂ .* x.^2
+	contour(x, x, fx1x2, levels=22, color=:turbo)
+	plot!(x1[1:n], x2[1:n], c=:black, leg=false)
+	scatter!(x1[1:n], x2[1:n], c=:black, ms=3, leg=false)
+	xlabel!("x₁")
+	ylabel!("x₂")
+	title!("f(x₁,x₂)")
+	
+	
+end
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -2865,5 +2907,7 @@ version = "1.4.1+2"
 # ╟─2a6259c8-0cdf-478e-b08c-94ab58fed26a
 # ╟─078a178c-54db-42c3-8d86-91d3980ce6b3
 # ╟─32559e29-45e5-4594-b79e-2808e12e2e93
+# ╟─afda5903-bad4-42eb-941b-9f02b3205b54
+# ╟─0a56c378-9351-4e13-b159-9dfbcee7a1e0
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
