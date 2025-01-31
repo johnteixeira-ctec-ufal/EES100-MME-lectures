@@ -1,11 +1,40 @@
 ### A Pluto.jl notebook ###
 # v0.20.4
 
+# MIT License
+# Copyright (c) 2025 Jonathan C. Teixeira
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+# and associated documentation files (the "Software"), to deal in the Software without restriction,
+# including without limitation the rights to use, copy, modify, merge, publish, distribute,
+# sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# - The above copyright notice and this permission notice shall be included in all copies or
+# substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+# BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+# DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 using Markdown
 using InteractiveUtils
 
 # ╔═╡ b219736a-44e3-4535-bfa6-d31cc67c4d0e
-using PlutoUI
+using PlutoUI, HypertextLiteral
+
+# ╔═╡ eb13fd25-148d-4744-abee-358b77c0db78
+@htl"""
+<style>
+	main {
+		margin: 0 auto;
+		max-width: 2000px;
+    	padding-left: max(160px, 10%);
+    	padding-right: max(160px, 10%);
+	}
+</style>
+"""
 
 # ╔═╡ 0819282f-1fd4-4242-96f1-1c64bf82cf2e
 TableOfContents(title="EES100 - Métodos Matemáticos para Engenharia", indent=true)
@@ -60,9 +89,11 @@ A avaliação do curso está projetada da seguinte forma:
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
+HypertextLiteral = "ac1192a8-f4b3-4bfe-ba22-af5b92cd3ab2"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 
 [compat]
+HypertextLiteral = "~0.9.5"
 PlutoUI = "~0.7.60"
 """
 
@@ -70,9 +101,9 @@ PlutoUI = "~0.7.60"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.10.7"
+julia_version = "1.10.8"
 manifest_format = "2.0"
-project_hash = "c1674f662899f5bfc062df83020732df21a649e9"
+project_hash = "d6ab3bdc3888fd8a982d15cc116b0392788040e9"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -336,6 +367,7 @@ version = "17.4.0+2"
 
 # ╔═╡ Cell order:
 # ╟─b219736a-44e3-4535-bfa6-d31cc67c4d0e
+# ╟─eb13fd25-148d-4744-abee-358b77c0db78
 # ╟─0819282f-1fd4-4242-96f1-1c64bf82cf2e
 # ╟─05befbe0-c468-11ef-2ec7-ad7da212f9dd
 # ╠═f191e21a-21ac-41e6-9340-62d1130b81f0

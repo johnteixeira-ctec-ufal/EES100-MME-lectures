@@ -24,6 +24,7 @@ begin
 	using HypertextLiteral
 	#using GLMakie
 	using LinearAlgebra
+	using Printf
 end
 
 # ╔═╡ 6c47342b-330d-425d-b16c-420d1cb6963d
@@ -49,11 +50,52 @@ end
 # ╔═╡ eca6c83e-2c03-4943-9f72-4bb271eb34f6
 @htl"""
 <style>
-	pluto-output code pre {
-		font-size: 90%;
+	main {
+		margin: 0 auto;
+		max-width: 2000px;
+    	padding-left: max(160px, 10%);
+    	padding-right: max(160px, 10%);
+	}
+
+	img:not(picture *) {
+	    width: 80%;
+	    display: block;
+	    margin-left: auto;
+	    margin-right: auto;
+	}
+	title {
+	    font-size: 200%;
+	    display: block;
+	    font-weight: bold;
+	    text-align: left;
+	    margin: 2em 0 0 0;
+	}
+	subtitle {
+	    font-size: 140%;
+	    display: block;
+	    text-align: left;
+	    margin: 0 0 1.5em 0;
+	}
+	author {
+	    font-size: 120%;
+	    display: block;
+	    text-align: left;
+	    margin: 0 0 1.5em 0;
+	}
+	email {
+	    font-size: 100%;
+	    display: block;
+	    text-align: left;
+	    margin: -1.8em 0 2em 0;
 	}
 	hr {
 	color: var(--pluto-output-color);
+	}
+	semester {
+	    font-size: 100%;
+	    display: block;
+	    text-align: left;
+		padding-bottom: 0.5em;
 	}
 	blockquote {
 		padding: 1.3em !important;
@@ -80,11 +122,24 @@ end
 		padding-left: 3em;
 		text-indent: -3em;
 	}
-	pluto-output details summary {
-		font-weight: normal !important;
-	}
 </style>
 """
+
+# ╔═╡ 0b7879a8-8189-45b7-94f2-6fc7807d576d
+begin
+	Base.show(io::IO, f::Float64) = @printf(io, "%.4f", f)
+	@htl"""
+	<button onclick="present()">Apresentar</button>
+	<div style="margin-top:3em;margin-bottom:7em;">
+	</div>
+	<title>EES100 - MÉTODOS MATEMÁTICOS PARA ENGENHARIA</title>
+	<subtitle>Algebra linear: Revisão</subtitle>
+	<author>Jonathan da Cunha Teixeira</author>
+	<email><a href="mailto:jonathan.teixeira@ctec.ufal.br">jonathan.teixeira@ctec.ufal.br<a/></email>
+	<semester>Programa de Pós-Graduação em Engenharia Civil<br>Engenharia de Petróleo<br>Universidade Federal de Alagoas</semester>
+	<hr style=""/>
+	"""
+end
 
 # ╔═╡ 5e820868-c687-42c7-ab82-0c0a92ff8c41
 md"""
@@ -271,14 +326,14 @@ details(
 
 # ╔═╡ 4ccfd476-5504-447a-97f2-82615f8a45a1
 details(
-	md"""**Ex.4.** Considere $\mathcal{M}_{n}$ o espaço das matrizes quadrádas $x\times n$. O subconjunto das matrizes simétricas $\mathcal{S}_n = \{A\in\mathcal{M}_n | A^T = A\}$ é um subespaço de $\mathcal{M}_n$?""",
+	md"""**Ex.4.** Considere $\mathcal{M}_{n}$ o espaço das matrizes quadrádas $n\times n$. O subconjunto das matrizes simétricas $\mathcal{S}_n = \{A\in\mathcal{M}_n | A^T = A\}$ é um subespaço de $\mathcal{M}_n$?""",
 	md"""Considerando $V=\begin{bmatrix}v_{11} & v_{12} & \dots & v_{1n}\\v_{12} & v_{22} & \dots & v_{2n}\\ \vdots & \vdots & \vdots\vdots\vdots &\vdots \\v_{1n} & v_{2n} & \dots & v_{nn}\end{bmatrix}$ e $W=\begin{bmatrix}w_{11} & w_{12} & \dots & w_{1n}\\ w_{12} & w_{22} & \dots & w_{2n}\\ \vdots & \vdots & \vdots\vdots\vdots &\vdots \\ w_{1n} & w_{2n} & \dots & w_{nn}\end{bmatrix}$. A propriedade aditiva é satisfeita:
 
 	$$V + W = v=\begin{bmatrix}v_{11}+w_{11} & v_{12} + w_{12}& \dots & v_{1n}+w_{1n}\\v_{12}+w_{12} & v_{22}+w_{22} & \dots & v_{2n}+w_{2n}\\ \vdots & \vdots & \vdots\vdots\vdots &\vdots \\v_{1n}+w_{1n} & v_{2n}+w_{2n} & \dots & v_{nn}+w_{nn}\end{bmatrix}\in\mathcal{S}_n$$
 	
 	fazendo $\alpha\in\mathbb{R}$ temos que $\alpha\cdot V = \begin{bmatrix}\alpha\cdot v_{11} & \alpha\cdot v_{12} & \dots & \alpha\cdot v_{1n}\\\alpha\cdot v_{12} & \alpha\cdot v_{22} & \dots & \alpha\cdot v_{2n}\\ \vdots & \vdots & \vdots\vdots\vdots &\vdots \\\alpha\cdot v_{1n} & \alpha\cdot v_{2n} & \dots & \alpha\cdot v_{nn}\end{bmatrix}\in\mathcal{S}_n$
 	
-	Portanto, $\mathcal{B}$ é subespaço de $\mathbb{R}^2$
+	Portanto, $\mathcal{S}_n$ é subespaço de $\mathcal{M}_{n}$
 	"""
 )
 
@@ -392,149 +447,6 @@ TwoCols(0.55,
 	"""
 )
 
-# ╔═╡ 03485d45-afd5-45ca-bd37-a2ae37769c0a
-md"""
-## Transformação linear
-
-Informalmente, uma Tranformação Linear (T ou $\mathcal{T}$) é uma regra que aceita entradas e produz saídas. Matematicamente, a transformação linear é uma regra que atribui para um vetor $x\in\mathbb{R}^n$ um vetor $\mathcal{T}(x)\in\mathbb{R}^m$ (i.e. "uma transformação"), onde:
-
-- O $\mathbb{R}^n$ é o **domínio** de $\mathcal{T}$;
-- O $\mathbb{R}^m$ é o **co-domínio** de $\mathcal{T}$;
-- Para $x$ em $\mathbb{R}^n$, o vetor $\mathcal{T}(x)$ em $\mathbb{R}^m$ é a **imagem** de $x$ aplicado $\mathcal{T}$;
-
-Para uma notação mais simplificada $\mathcal{T}:\mathbb{R}^n\rightarrow\mathbb{R}^m$, onde ler-se como: *"$\mathcal{T}$ é uma transformação de $\mathbb{R}^n$ para $\mathbb{R}^m$"*
-
-Toda transformação linear deve satisfazer as operações de adição e multiplicação por um escalar, 
-
-$$\mathcal{T}(a_1 + a_2) = \mathcal{T}(a_1) + \mathcal{T}(a_2)$$
-
-$$\mathcal{T}(\alpha a_1) = \alpha\mathcal{T}(a_1)$$
-
-O primeiro exemplo de transformação linear, bem conhecido é a derivada, $\mathcal{T}\left[p(x)\right] = \partial_x p(x)$
-"""
-
-# ╔═╡ e48c9ca4-d8fe-4a7d-8877-04c98985ec86
-details(
-	md"""**Ex.7.** Mostre que a derivada de ordem 1 é uma transformação linear.""",
-	md"""Seja $p_1 = bx + a$ e $p_2 = dx² + cx$, temos que
-
-	$$\mathcal{T}(p_1) = \partial_x(bx+a) = b\qquad \mathcal{T}(p_2) = \partial_x(dx²+cx) = 2dx + c$$
-
-	Verificando a adição e multiplicação por escalar, obtemos:
-
-	$$\mathcal{T}(p_1 + p_2) = \partial_x\left(dx² + cx + bx + a\right) = 2dx+c+b\rightarrow = \mathcal{T}(p_1) + \mathcal{T}(p_2)$$
-	$$\partial_x(5p_2) = \partial_x\left[5(dx²+cx)\right] = 5dx+5c\rightarrow 5 \mathcal{T}(p_2)$$
-
-	Portanto, a derivada é uma transformação linear. 
-	"""
-)
-
-# ╔═╡ fc96a54a-ea41-45ce-a087-58263f75125e
-md"""
-### Núcleo de uma transformação linear
-
-É um subconjunto de valores (vetores) do domínio que mapeiam ao vetor nulo no contra-domínio (co-domínio). Além disso, o núcleo é um subespaço vetorial. A dimensão de núcleo é a dimensão do espaço de domínio menos a dimensão do espaço da imagem.
-
-**Ex.:** A dimensão do núcleo da transformação linear da derivada de polinômios de grau $\le$ 3 é:
-
-* Dim. do domínio = 4 ($a + bx + cx² + dx³$)
-* Dim. da imagem  = 3 ($b + c'x + d'x²$)
-
-Portanto dim núcleo = 4 - 3 = 1
-
-### Matriz de transformação
-
-Matriz de transformção é uma matriz que mapea a transformação linear através de operações algebricas de multiplicação de matrizes e vetores, de forma que, para $\mathcal{T}:\mathbb{R}^n\rightarrow\mathbb{R}^m$ temos uma matriz $A_{m,n}$ tal que, $\mathcal{T}(x) = Ax$. Isto é, uma transformação de $x$ no $\mathbb{R}^n$ para$Ax$ no $\mathbb{R}^m$.
-
-Se $A$ tem $n$ colunas, então só faz sentido multiplicar $A$ por vetores com $n$ entradas. É por isso que o domínio de $T(x)=Ax$ é $\mathbb{R}^n$. Se $A$ tem $n$ linhas, então $Ax$ tem $m$ entradas para qualquer vetor $x$ em $\mathbb{R}^n$, é por isso que o contradomínio de $\mathcal{T}(x)=Ax$ é $\mathbb{R}^m$.
-
-Por exemplo, para a transformação linear da rotação anti-horária no plano xy por 90°, temos que: 
-
-$$\mathcal{T}:\mathbb{R}^2\rightarrow\mathbb{R}^2$$
-
-Portanto, podemos definir $\mathcal{T}$ da seguinte forma:
-
-$$\mathcal{T}(x) = Ax = \begin{bmatrix}a & b \\ c & d\end{bmatrix}\begin{bmatrix}x\\ y\end{bmatrix}$$
-
-As colunas de $A$ são obtidas avaliando $\mathcal{T}$ nos vetores de coordenadas padrão ($e_1, e_2$)
-
-$$\begin{bmatrix}0 \\ 1\end{bmatrix}=\begin{bmatrix}a & b \\ c & d\end{bmatrix}\begin{bmatrix}1\\ 0\end{bmatrix}$$
-
-Obtemos, $a=0$ e $c=1$, para $e_2$:
-
-$$\begin{bmatrix}-1 \\ 0\end{bmatrix}=\begin{bmatrix}0 & b \\ 1 & d\end{bmatrix}\begin{bmatrix}0\\ 1\end{bmatrix}$$
-
-Agora, $b = -1$ e $d=0$, portanto a matriz de transformação (padrão) é dado por:
-
-$$A = \begin{bmatrix}0 & -1\\ 1 & 0\end{bmatrix}$$
-
-Deste modo, a transformação linear da rotação anti-horária no plano xy por 90° é,
-
-$$\mathcal{T}:\mathbb{R}^m\rightarrow\mathbb{R}^m\qquad\mathcal{T}(x) = \begin{pmatrix}0 & -1\\ 1 & 0\end{pmatrix}x$$
-"""
-
-# ╔═╡ 6d08831e-9b10-4bdf-b324-bbb8b2b5b7eb
-begin
-	md"""
-	x: $(@bind x0 Slider(a, show_value=true))
-	y: $(@bind x1 Slider(a, show_value=true, default=0))	
-	"""	
-end
-
-# ╔═╡ a4cd196c-2bc2-4658-a0c3-6aeeb5ec726d
-begin
-	A = [0 -1; 1 0]
-	t = A*[x0, x1]
-	quiver([0.],[0.],quiver=([x0], [x1]), c=:black, label="x", lw=2)
-	quiver!([0.],[0.],quiver=([t[1]], [t[2]]), c=:red, label="Rot.",lw=3)
-end
-
-# ╔═╡ f2f16bcf-ad41-4145-bcce-c65c2f90b6dd
-md"""
-Outra aplicação da matriz transformação, reside na construção da matriz de rigidez que relaciona os deslocamentos com as forças que aplicadas sobre os blocos rígidos em sistemas dinâmicos de mais de um grau de liberdade (remotando a teoria das vibrações...). O número graus de liberdade em um sistema dita o tamanho das matrizes e vetores da equação do movimento (2° lei de Newton). Quando temos múltiplos graus de liberdade precisamos equacionar o sistema usando matrizes, dai a importância do conhecimento de transformações lineares.
-
-Seja o sistema de dois graus de liberdade mostrado na Figura abaixo:
-
-![sys2DOF](https://miro.medium.com/v2/resize:fit:1400/format:webp/1*tkCUQCaE-kG9rTKavRs6bQ.png)
-
-Como as forças da mola equilibram os blocos na posição de equilíbrio estático. Sem perda de generalidade, assumimos que $x_2 > x_1$ na posição de equilíbrio estático, tem-se, de
-
-$$-k_1x_1 + k_2(x_2 - x_1) = f_1$$
-$$- k_2(x_2 - x_1) - k_3x_2= f_2$$
-
-onde $k_1$, $k_2$ e $k_3$ são as constantes da mola, $x_1,x_2$ a deformação das molas e $f_1, f_2$ as forças que aplicadas sobre os blocos rígidos 1 e 2. Desta forma, a matriz de rigidez é
-
-$$M = \begin{pmatrix}-k_1-k_2 & k_2\\ k_2 & -k_2-k_3\end{pmatrix}$$
-
-Assim temos que $\mathcal{T}:\mathbb{R}^2\rightarrow\mathbb{R}^2$ com $\mathcal{T}(x)=Mx=f$
-
-"""
-
-# ╔═╡ 9ad3ab61-3454-427c-a262-3921452f3937
-md"""
-### Composição de transformações lineares
-
-Compor duas transformações significa a mesma coisa em álgebra linear que em Cálculo, que é aplica-las em cadeia: $\mathcal{T}\circ\mathcal{U}$ é a transformação que primeiro aplica $\mathcal{U}$, depois aplica $\mathcal{T}$ (**observe a ordem das operações**). Mais precisamente, para avaliar $\mathcal{T}\circ\mathcal{U}$ em um vetor de entrada $x$, primeiro avaliamos $\mathcal{U}(x)$, então do vetor de saída de e o usamos como um vetor de entrada para $\mathcal{T}$: isto é, $(\mathcal{T}\circ\mathcal{U})(x)=\mathcal{T}(\mathcal{U}(x))$. É notório, que isso só será válido quando as saídas de $\mathcal{U}$ são entradas válidas de $\mathcal{T}$.
-
-Por exemplo, seja as transformações $\mathcal{T}:\mathbb{R}^3\rightarrow\mathbb{R}^2$ e $\mathcal{U}:\mathbb{R}^2\rightarrow\mathbb{R}^3$,  definidas por:
-
-$$\mathcal{T}(x)=\begin{pmatrix}1 & 1& 0\\ 0 & 1 & 1\end{pmatrix}x\qquad\mathcal{U}(x)=\begin{pmatrix}1 & 0\\ 0 & 1\\1 & 0\end{pmatrix}x$$
-
-A composição das transformações é $\mathcal{T}\circ\mathcal{U}:\mathbb{R}^2\rightarrow\mathbb{R}^2$, pois aplicando $\mathcal{U}$ para o vetor $(-7\quad 5)^T$, obtemos:
-
-$$\mathcal{U}(x) = \begin{pmatrix}1 & 0\\ 0 & 1\\1 & 0\end{pmatrix}\begin{pmatrix}-7\\5\end{pmatrix}=\begin{pmatrix}-7\\ 5\\-7\end{pmatrix}$$
-
-Por fim, aplicando $\mathcal{T}$,
-
-$$\mathcal{T}(\mathcal{U}(x)) = \begin{pmatrix}1 & 1& 0\\ 0 & 1 & 1\end{pmatrix}\begin{pmatrix}-7\\ 5\\-7\end{pmatrix}=\begin{pmatrix}-2\\-2\end{pmatrix}$$
-
-Fazendo o uso das propriedades das transformações lineares, observamos que:
-
-$$\mathcal{T}\circ\mathcal{U}(x) =\begin{pmatrix}1 & 1\\1 & 1\end{pmatrix}(x) = \begin{pmatrix}1 & 1& 0\\ 0 & 1 & 1\end{pmatrix}\begin{pmatrix}1 & 0\\ 0 & 1\\1 & 0\end{pmatrix}(x)$$
-
-Portanto, se composição das transformações é $\mathcal{S}=\mathcal{T}\circ\mathcal{U}:\mathbb{R}^m\rightarrow\mathbb{R}^n$, sendo $\mathcal{T}:\mathbb{R}^p\rightarrow\mathbb{R}^n$ e $\mathcal{U}:\mathbb{R}^m\rightarrow\mathbb{R}^p$, onde temos que as matrizes transformações são: $\mathcal{T}(x) = Ax$ e $\mathcal{U}(x) = Bx$. Logo, teremos como matriz transformação da composição dada por $\mathcal{S}(x) = C(x) = (AB)(x)$, isto é, a multiplicação entre as natrizes $A$ e $B$.
-"""
-
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -543,6 +455,7 @@ HypertextLiteral = "ac1192a8-f4b3-4bfe-ba22-af5b92cd3ab2"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 
 [compat]
 ForwardDiff = "~0.10.38"
@@ -555,9 +468,9 @@ PlutoUI = "~0.7.60"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.10.7"
+julia_version = "1.10.8"
 manifest_format = "2.0"
-project_hash = "820e8fe568dc498fcf1b172c4a50a7c612618da9"
+project_hash = "b2b81d0b58f8c6da2974b1347a489353096da974"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -1751,6 +1664,7 @@ version = "1.4.1+2"
 # ╟─6c47342b-330d-425d-b16c-420d1cb6963d
 # ╟─93e6e8bf-1878-4c5d-a110-fddf9c8f26af
 # ╟─eca6c83e-2c03-4943-9f72-4bb271eb34f6
+# ╟─0b7879a8-8189-45b7-94f2-6fc7807d576d
 # ╟─5e820868-c687-42c7-ab82-0c0a92ff8c41
 # ╟─96c39766-4a67-4162-8b5d-6847a4367baf
 # ╟─9114fc83-cf82-464a-b1cb-2bbe4f9a8556
@@ -1768,12 +1682,5 @@ version = "1.4.1+2"
 # ╟─bee6f07b-b6c5-45a0-a4a1-1094dc5e6755
 # ╟─ee89bbcd-b7de-496b-b616-5fc80cc6fc88
 # ╟─7297a7be-2037-4438-9630-b2de192f5de1
-# ╟─03485d45-afd5-45ca-bd37-a2ae37769c0a
-# ╟─e48c9ca4-d8fe-4a7d-8877-04c98985ec86
-# ╟─fc96a54a-ea41-45ce-a087-58263f75125e
-# ╟─6d08831e-9b10-4bdf-b324-bbb8b2b5b7eb
-# ╟─a4cd196c-2bc2-4658-a0c3-6aeeb5ec726d
-# ╟─f2f16bcf-ad41-4145-bcce-c65c2f90b6dd
-# ╟─9ad3ab61-3454-427c-a262-3921452f3937
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002

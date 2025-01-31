@@ -55,8 +55,45 @@ end
 	pluto-output code pre {
 		font-size: 90%;
 	}
+	img:not(picture *) {
+	    width: 80%;
+	    display: block;
+	    margin-left: auto;
+	    margin-right: auto;
+	}
+	title {
+	    font-size: 200%;
+	    display: block;
+	    font-weight: bold;
+	    text-align: left;
+	    margin: 2em 0 0 0;
+	}
+	subtitle {
+	    font-size: 140%;
+	    display: block;
+	    text-align: left;
+	    margin: 0 0 1.5em 0;
+	}
+	author {
+	    font-size: 120%;
+	    display: block;
+	    text-align: left;
+	    margin: 0 0 1.5em 0;
+	}
+	email {
+	    font-size: 100%;
+	    display: block;
+	    text-align: left;
+	    margin: -1.8em 0 2em 0;
+	}
 	hr {
 	color: var(--pluto-output-color);
+	}
+	semester {
+	    font-size: 100%;
+	    display: block;
+	    text-align: left;
+		padding-bottom: 0.5em;
 	}
 	blockquote {
 		padding: 1.3em !important;
@@ -88,6 +125,22 @@ end
 	}
 </style>
 """
+
+# ╔═╡ daf64c38-3b18-4374-898c-cadc77eba2b7
+begin
+	Base.show(io::IO, f::Float64) = @printf(io, "%.4f", f)
+	@htl"""
+	<button onclick="present()">Apresentar</button>
+	<div style="margin-top:3em;margin-bottom:7em;">
+	</div>
+	<title>EES100 - MÉTODOS MATEMÁTICOS PARA ENGENHARIA</title>
+	<subtitle>Auto valor e auto vetor</subtitle>
+	<author>Jonathan da Cunha Teixeira</author>
+	<email><a href="mailto:jonathan.teixeira@ctec.ufal.br">jonathan.teixeira@ctec.ufal.br<a/></email>
+	<semester>Programa de Pós-Graduação em Engenharia Civil<br>Engenharia de Petróleo<br>Universidade Federal de Alagoas</semester>
+	<hr style=""/>
+	"""
+end
 
 # ╔═╡ fd320862-fee3-4a22-98e1-b85339ec0b03
 md"""
@@ -394,7 +447,7 @@ PlutoUI = "~0.7.60"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.10.7"
+julia_version = "1.10.8"
 manifest_format = "2.0"
 project_hash = "65bcd2d96ea1d0995a996e9c9df94f5061e5e68e"
 
@@ -3000,6 +3053,7 @@ version = "1.4.1+2"
 # ╟─e6af53e4-9ea4-4886-9e4d-dd9720ac78e9
 # ╟─ba13defe-4086-4dc4-8f27-79337caee2f7
 # ╟─8eb1d5bc-6e4b-4bb0-a780-3d2d0879400a
+# ╟─daf64c38-3b18-4374-898c-cadc77eba2b7
 # ╟─fd320862-fee3-4a22-98e1-b85339ec0b03
 # ╟─0fb64a8a-9134-4908-b37a-187ece11cf8a
 # ╟─0f66178d-79ce-4a1c-aecd-e45e72cc0e77

@@ -16,10 +16,21 @@ macro bind(def, element)
     #! format: on
 end
 
-# ╔═╡ 8a6c1e60-cc31-11ef-1be9-7b2c18d3e3c5
-using Plots, PlutoUI, HypertextLiteral, LinearAlgebra, Printf
+# ╔═╡ 694ec67e-df76-11ef-25c9-f98fe3bc8bc4
+begin
+	using Plots
+	using ForwardDiff
+	using PlutoUI
+	using HypertextLiteral
+	#using GLMakie
+	using LinearAlgebra
+	using Printf
+end
 
-# ╔═╡ cf294dd7-a0ca-466b-90d6-2aa1b6b0be43
+# ╔═╡ eca42475-834a-4753-bcbf-f403c513c6b0
+TableOfContents()
+
+# ╔═╡ cba51900-7872-4424-b858-041ddb3b7f9c
 begin
 	struct TwoCols{w, L, R}
 	leftcolwidth::w
@@ -36,7 +47,7 @@ begin
 	end
 end
 
-# ╔═╡ cc619ca9-fcd0-483e-8bbc-31a24ac977bc
+# ╔═╡ 8b5e9e31-1686-45ca-bf45-95b4545d8611
 @htl"""
 <style>
 	main {
@@ -45,12 +56,7 @@ end
     	padding-left: max(160px, 10%);
     	padding-right: max(160px, 10%);
 	}
-	pluto-output code pre {
-		font-size: 90%;
-	}
-	pluto-output details summary {
-		font-weight: normal !important;
-	}
+
 	img:not(picture *) {
 	    width: 80%;
 	    display: block;
@@ -119,10 +125,7 @@ end
 </style>
 """
 
-# ╔═╡ 47970e08-997f-4254-bb2f-c97dfeba3390
-TableOfContents()
-
-# ╔═╡ f26da6de-3267-4159-a9ec-3378c330f615
+# ╔═╡ 0815d37d-2244-4a98-9b56-e24b20040604
 begin
 	Base.show(io::IO, f::Float64) = @printf(io, "%.4f", f)
 	@htl"""
@@ -130,7 +133,7 @@ begin
 	<div style="margin-top:3em;margin-bottom:7em;">
 	</div>
 	<title>EES100 - MÉTODOS MATEMÁTICOS PARA ENGENHARIA</title>
-	<subtitle>Sistemas de equações algebricas lineares</subtitle>
+	<subtitle>Transformação linear</subtitle>
 	<author>Jonathan da Cunha Teixeira</author>
 	<email><a href="mailto:jonathan.teixeira@ctec.ufal.br">jonathan.teixeira@ctec.ufal.br<a/></email>
 	<semester>Programa de Pós-Graduação em Engenharia Civil<br>Engenharia de Petróleo<br>Universidade Federal de Alagoas</semester>
@@ -138,616 +141,154 @@ begin
 	"""
 end
 
-# ╔═╡ 7133755b-2dc8-4df5-8bee-3a77bad95e1f
+# ╔═╡ 27a54bbd-a92d-4896-8beb-63dce58b39b5
 md"""
-# Sistemas de equações algebricas lineares
+## Transformação linear
 
-Muitas das equações fundamentais da engenharia são baseadas em leis de conservação. Algumas quantidades familiares decorrente de tais leis são massa, energia e momento. Em termos matemáticos, esses princípios levam a equações de equilíbrio ou continuidade que relacionam o comportamento do sistema conforme resposta da quantidade sendo modelada (massa, volume, força, deslocamento, etc) às propriedades ou características do sistema (taxas de reação, rigidez, resistividade, etc) e aos estímulos externos atuando no sistema (vazões, carregamentos/solicitações, diferença de potencial, etc).
+Informalmente, uma Tranformação Linear (T ou $\mathcal{T}$) é uma regra que aceita entradas e produz saídas. Matematicamente, a transformação linear é uma regra que atribui para um vetor $x\in\mathbb{R}^n$ um vetor $\mathcal{T}(x)\in\mathbb{R}^m$ (i.e. "uma transformação"), onde:
 
-A aplicação destas leis físicas na modelagem de sistemas em muitos casos origina a partir de um conjunto de equações algébricas lineares que devem ser resolvidas simultaneamente. Além disso, métodos de resolução de equações diferenciais com frequência levam à transformação das equações diferenciais em um conjunto de equações algébricas que podem ser então resolvidas. 
+- O $\mathbb{R}^n$ é o **domínio** de $\mathcal{T}$;
+- O $\mathbb{R}^m$ é o **co-domínio** de $\mathcal{T}$;
+- Para $x$ em $\mathbb{R}^n$, o vetor $\mathcal{T}(x)$ em $\mathbb{R}^m$ é a **imagem** de $x$ aplicado $\mathcal{T}$;
 
-Por exemplo, os métodos de diferenças finitas, elementos finitos e dos volumes finitos consistem em dividir o domínio de solução em um conjunto de pequenos elementos/células discretos(as) ($\Omega_e$), onde são formuladas equações de balanço para cada elemento/célula e estas formam equações algébricas. Este processo, chamado de *discretização*, que origina um conjunto de equações algébricas lineares e resolvê-la para determinar os valores $x_1, x_2, \dots, x_n$ que satisfazem simultaneamente um conjunto de equações (em problemas mecânicos geralmente são os deslocamentos, já problemas envolvendo multiplas físicas pressões, concentrações, correntes elétricas, etc).
+Para uma notação mais simplificada $\mathcal{T}:\mathbb{R}^n\rightarrow\mathbb{R}^m$, onde ler-se como: *"$\mathcal{T}$ é uma transformação de $\mathbb{R}^n$ para $\mathbb{R}^m$"*
 
-Outro exemplo, os problemas envolvendo equações não-lineares, onde todo procedimento numérico de resolução demanda, em cada iteração do procedimento, a resolução de sistemas lineares de mesma dimensão do sistema original. Assim, o desempenho do procedimento é absolutamente dependente da eficiência e acurácia do método de resolução de sistemas lineares de equações algébricas.
+Toda transformação linear deve satisfazer as operações de adição e multiplicação por um escalar, 
 
-Portanto é fundamental conseguir definir quando um *sistema de equações algébricas lineares possui alguma solução* (ou seja, é **consistente**) e se essa solução é única ou envolve um certo número de parâmetros arbitrários. O estudo de sistemas de equações algébricas lineares é um dos tópicos fundamentais da álgebra linear.
+$$\mathcal{T}(a_1 + a_2) = \mathcal{T}(a_1) + \mathcal{T}(a_2)$$
+
+$$\mathcal{T}(\alpha a_1) = \alpha\mathcal{T}(a_1)$$
+
+O primeiro exemplo de transformação linear, bem conhecido é a derivada, $\mathcal{T}\left[p(x)\right] = \partial_x p(x)$
 """
 
-# ╔═╡ 5bc77469-45a0-4703-9d0a-e143ba8a53c2
+# ╔═╡ 0c8a05a9-9039-490f-96a7-a5a238abd492
+details(
+	md"""**Ex.7.** Mostre que a derivada de ordem 1 é uma transformação linear.""",
+	md"""Seja $p_1 = bx + a$ e $p_2 = dx² + cx$, temos que
+
+	$$\mathcal{T}(p_1) = \partial_x(bx+a) = b\qquad \mathcal{T}(p_2) = \partial_x(dx²+cx) = 2dx + c$$
+
+	Verificando a adição e multiplicação por escalar, obtemos:
+
+	$$\mathcal{T}(p_1 + p_2) = \partial_x\left(dx² + cx + bx + a\right) = 2dx+c+b\rightarrow = \mathcal{T}(p_1) + \mathcal{T}(p_2)$$
+	$$\partial_x(5p_2) = \partial_x\left[5(dx²+cx)\right] = 5dx+5c\rightarrow 5 \mathcal{T}(p_2)$$
+
+	Portanto, a derivada é uma transformação linear. 
+	"""
+)
+
+# ╔═╡ 2a7b90b1-1dab-4046-9f06-cc9941d4cd55
 md"""
-De maneira simplificada um sistema de equações algebricas lineares é:
+### Núcleo de uma transformação linear
 
-$$A\ x = b\quad A\in\mathbb{R}^{n\times n},\ x\in\mathbb{R}^n$$
+É um subconjunto de valores (vetores) do domínio que mapeiam ao vetor nulo no contra-domínio (co-domínio). Além disso, o núcleo é um subespaço vetorial. A dimensão de núcleo é a dimensão do espaço de domínio menos a dimensão do espaço da imagem.
 
-ou
+**Ex.:** A dimensão do núcleo da transformação linear da derivada de polinômios de grau $\le$ 3 é:
 
-$$\sum_{i=1}^n\sum_{j=1}^n a_{ij} x_j = b_i$$
+* Dim. do domínio = 4 ($a + bx + cx² + dx³$)
+* Dim. da imagem  = 3 ($b + c'x + d'x²$)
 
-sendo $a_{ij}$ os coeficientes constantes, $b_i$ constantes, $x_j$ são os valores a determinar (incógnitas) e $n$ é o número de equações. A matriz aumentada do sistema é definida como $A_{aumentada}=[A|b]$
+Portanto dim núcleo = 4 - 3 = 1
 
-Na forma clássica:
+### Matriz de transformação
 
-$$a_{11}x_{1}+a_{12}x_{2}+\dots+a_{1n}x_{n} = b_1$$
-$$a_{21}x_{1}+a_{22}x_{2}+\dots+a_{2n}x_{n} = b_2$$
-$$\vdots\qquad\vdots\qquad\vdots\qquad\vdots\qquad\qquad$$
-$$a_{n1}x_{1}+a_{n2}x_{2}+\dots+a_{nn}x_{n} = b_n$$
+Matriz de transformção é uma matriz que mapea a transformação linear através de operações algebricas de multiplicação de matrizes e vetores, de forma que, para $\mathcal{T}:\mathbb{R}^n\rightarrow\mathbb{R}^m$ temos uma matriz $A_{m,n}$ tal que, $\mathcal{T}(x) = Ax$. Isto é, uma transformação de $x$ no $\mathbb{R}^n$ para$Ax$ no $\mathbb{R}^m$.
 
-Na forma matricial,
+Se $A$ tem $n$ colunas, então só faz sentido multiplicar $A$ por vetores com $n$ entradas. É por isso que o domínio de $T(x)=Ax$ é $\mathbb{R}^n$. Se $A$ tem $n$ linhas, então $Ax$ tem $m$ entradas para qualquer vetor $x$ em $\mathbb{R}^n$, é por isso que o contradomínio de $\mathcal{T}(x)=Ax$ é $\mathbb{R}^m$.
 
-$$\begin{bmatrix}
-a_{11} & a_{12} & \dots & a_{1n}\\
-a_{21} & a_{22} & \dots & a_{2n}\\
-\vdots & \vdots & \vdots & \vdots\\
-a_{n1} & a_{n2} & \dots & a_{nn}
-\end{bmatrix} \begin{bmatrix}x_1\\ x_2\\ \vdots\\ x_n\end{bmatrix} = 
-\begin{bmatrix}b_1\\ b_2\\ \vdots\\ b_n\end{bmatrix}$$
+Por exemplo, para a transformação linear da rotação anti-horária no plano xy por 90°, temos que: 
 
-A interpretação gráfica da solução de sistema de equações algebricas lineares pode ser perceptivo apenas para $\mathbb{R}^{2\times 2}$. Desta forma, dado o sistema algébrico linear:
+$$\mathcal{T}:\mathbb{R}^2\rightarrow\mathbb{R}^2$$
 
-$$\begin{cases}3x_1 + 2x_2 = 8\\ -x_1 + 2x_2 = 2\end{cases}$$
+Portanto, podemos definir $\mathcal{T}$ da seguinte forma:
 
-cuja a solução é (4, 3) considerando $(x_1, x_2)$. Assim a representação gráfica da solução é:
+$$\mathcal{T}(x) = Ax = \begin{bmatrix}a & b \\ c & d\end{bmatrix}\begin{bmatrix}x\\ y\end{bmatrix}$$
+
+As colunas de $A$ são obtidas avaliando $\mathcal{T}$ nos vetores de coordenadas padrão ($e_1, e_2$)
+
+$$\begin{bmatrix}0 \\ 1\end{bmatrix}=\begin{bmatrix}a & b \\ c & d\end{bmatrix}\begin{bmatrix}1\\ 0\end{bmatrix}$$
+
+Obtemos, $a=0$ e $c=1$, para $e_2$:
+
+$$\begin{bmatrix}-1 \\ 0\end{bmatrix}=\begin{bmatrix}0 & b \\ 1 & d\end{bmatrix}\begin{bmatrix}0\\ 1\end{bmatrix}$$
+
+Agora, $b = -1$ e $d=0$, portanto a matriz de transformação (padrão) é dado por:
+
+$$A = \begin{bmatrix}0 & -1\\ 1 & 0\end{bmatrix}$$
+
+Deste modo, a transformação linear da rotação anti-horária no plano xy por 90° é,
+
+$$\mathcal{T}:\mathbb{R}^m\rightarrow\mathbb{R}^m\qquad\mathcal{T}(x) = \begin{pmatrix}0 & -1\\ 1 & 0\end{pmatrix}x$$
 """
 
-# ╔═╡ 688ff3a6-c085-4085-b349-ab7cd7410276
+# ╔═╡ 2720db9c-40b4-4a76-a605-e8818bff2ff5
 begin
-	aij = range(-3,3,31)
+	a = range(-9,9,11);
 	md"""
-	a₁₁: $(@bind a₁₁ Slider(aij, show_value=true, default=3))
-	a₁₂: $(@bind a₁₂ Slider(aij, show_value=true, default=2))
-	
-	a₂₁: $(@bind a₂₁ Slider(aij, show_value=true, default=-1))
-	a₂₂: $(@bind a₂₂ Slider(aij, show_value=true, default=2))
+	x: $(@bind x0 Slider(a, show_value=true))
+	y: $(@bind x1 Slider(a, show_value=true, default=0))	
 	"""	
 end
 
-# ╔═╡ e1906b69-63d4-4858-9000-0b2083c31ccb
-let
-	r = range(0,6,50)
-	x2_1 = (8.0 .- a₁₁ .* r)./a₁₂
-	x2_2 = (2.0 .- a₂₁ .* r)./a₂₂
-	plot(r, x2_1, c=:red, lw=2, label="$a₁₁ x₁+ $a₁₂ x₂ = 8")
-	plot!(r, x2_2, c=:black, lw=2, label="$a₂₁ x₁+ $a₂₂ x₂ = 2")
-	xlabel!("x₁")
-	ylabel!("x₂")
+# ╔═╡ d70ed4a0-00e7-4280-a90e-a96689534829
+begin
+	A = [0 -1; 1 0]
+	t = A*[x0, x1]
+	quiver([0.],[0.],quiver=([x0], [x1]), c=:black, label="x", lw=2)
+	quiver!([0.],[0.],quiver=([t[1]], [t[2]]), c=:red, label="Rot.",lw=3)
 end
 
-# ╔═╡ 69d1af5c-f6b0-4eb8-93ec-16bb7a2b9f19
+# ╔═╡ 8abfeb67-a294-4b68-8991-18c1566a7bcf
 md"""
-## Análise da Solução de Sistemas Algébricos Lineares - Existência, Unicidade e Condicionamento
+Outra aplicação da matriz transformação, reside na construção da matriz de rigidez que relaciona os deslocamentos com as forças que aplicadas sobre os blocos rígidos em sistemas dinâmicos de mais de um grau de liberdade (remotando a teoria das vibrações...). O número graus de liberdade em um sistema dita o tamanho das matrizes e vetores da equação do movimento (2° lei de Newton). Quando temos múltiplos graus de liberdade precisamos equacionar o sistema usando matrizes, dai a importância do conhecimento de transformações lineares.
 
-A forma genérica de representação de um sistema algébrico linear qualquer é $Ax=b$, onde $A\in\mathbb{R}^{m\times n}$ é uma matriz retangular com $m$ linhas e $n$ colunas, $x\in\mathbb{R}^n$ e $b\in\mathbb{R}^m$. Para que o sistema linear possa ser *classificado* como **consistente** ou **existência de solução**, o posto (*rank*)[^1] de $A$ deve ser igual ao posto de $A_{aumentada}$. Portanto, podemos deparar com três situações:
+Seja o sistema de dois graus de liberdade mostrado na Figura abaixo:
 
-1. O **número de equações menor que o número de incógnitas**, i.e. $m < n$. Neste caso, $m$ é o valor máximo do posto da matriz $A$, considerando $r$ o valor do posto, necessariamente devemos ter $r\le m$ e, para que o sistema seja *consistente*, o posto de $A_{aumentada}=[A\ b]$ também deve ser igual a $r$. Neste caso, **o sistema é consistente e apresenta um número infinito de soluções**. Portanto, temos $r$ incógnitas podem ser expressas por uma combinação linear de $n−r$ incógnitas.
+![sys2DOF](https://miro.medium.com/v2/resize:fit:1400/format:webp/1*tkCUQCaE-kG9rTKavRs6bQ.png)
 
-2. O **número de equações igual o número de incógnitas** $m = n$: A matriz $A\in\mathbb{R}^{n\times n}$ é matriz quadrada, $x\in\mathbb{R}^n$ é o vetor de incógnitas e $b\in\mathbb{R}^n$ é chamado de vetor das constantes, com componentes conhecidos. Esta situação só *apresenta solução se a matriz $A$ for regular* (existir uma matriz inversa $A^{−1}$, tal que $A^{−1} A = A A^{−1} = I$) e se tiver o posto igual a $n$, a condição necessária e suficiente para que tal ocorra é $det(A)\ne 0$, desta forma não há possibilidade do posto da matriz $A_{aumentada}$, ser maior do que $n$, logo o sistema apresenta uma única solução ou **unicidade**.
+Como as forças da mola equilibram os blocos na posição de equilíbrio estático. Sem perda de generalidade, assumimos que $x_2 > x_1$ na posição de equilíbrio estático, tem-se, de
 
-3. O **número de equações é maior que o número de incógnitas**, aqui a matriz $A$ apresenta um número de colunas, $n$, menor do que o número de linhas, $m$, o valor máximo do posto(*rank*) de $A$ é $n$, como os vetores coluna de $A$ são de dimensão $m > n$ existe a possibilidade do posto de $A_{aumentada}$ ser igual a $n+1$, valor maior que o posto de $A$ tornando o **sistema inconsistente**. A consistência do sistema nesta situação é um indicativo de que as equações que estão em excesso, $m−n$ equações, não contradizem as $n$ equações consistentes utilizadas na resolução do sistema.
+$$-k_1x_1 + k_2(x_2 - x_1) = f_1$$
+$$- k_2(x_2 - x_1) - k_3x_2= f_2$$
 
-Resumindo, para o sistema de equações $A\cdot x = b$, temos
+onde $k_1$, $k_2$ e $k_3$ são as constantes da mola, $x_1,x_2$ a deformação das molas e $f_1, f_2$ as forças que aplicadas sobre os blocos rígidos 1 e 2. Desta forma, a matriz de rigidez é
 
-$$r = rank(A); r_a = rank(A_{aumentada})
-\begin{cases}
-	r=r_a,\text{ sistema consistente}
-	\begin{cases}
-		r=n,\text{ solução única}\\
-		r<n,\ \infty \text{ soluções}
-	\end{cases}\\
-	r<r_a,\text{ sistema inconsistente}\rightarrow\text{ sem solução}
-\end{cases}$$
+$$M = \begin{pmatrix}-k_1-k_2 & k_2\\ k_2 & -k_2-k_3\end{pmatrix}$$
 
-
-**Mas como saber se a solução encontrada do sistema linear esta correta (acurado/preciso)?**
-
-Se $\hat{x}$ for uma **solução computada** para o sistema linear $A\ x = b$, então seu **erro** é a diferença $\epsilon = x-\hat{x}$. É claro que este *erro não é conhecido*, pois se o fosse a solução exata (x) já seria conhecida!. Entretanto, uma maneira de avaliar a "**qualidade da solução**" obtida $\hat{x}$ é calculando o **resíduo** definido por $res = A x − A\hat{x}$ como $A x = b$, então $res = b−A\hat{x}$. Este **resíduo mede o grau de satisfação de $\hat{x}$ referente a restrição $A x = b$**. 
-
-Se $res=0$, então $\hat{x}$ é a solução exata e o erro ($\epsilon$) e é nulo.
-
-Para uma boa aproximação $\hat{x}\rightarrow x$ da solução exata, espera-se que **para cada elemento de $res$ seja próximo de zero** ($|res|\approx 0 \le\varepsilon$).
-
-Além da análise de consistência de sistemas algébrico lineares é aconselhável também avaliar o **condicionamento da matriz** $A$ do sistema, pois para alguns sistemas, pequenas variações nos coeficientes causam uma grande variação na solução obtida impondo dificuldades numéricas na resolução do sistema e na inversão da matriz. Com base nisso, pode-se dividir os problemas em duas classes:
-
-- **Problemas bem condicionados** (*well-conditioned*): são aqueles onde uma pequena variação em qualquer um dos elementos do problema causa somente uma pequena variação na solução do problema;
-
-- **Problemas mal condicionados** (*ill-conditioned*): são problemas onde uma pequena variação em algum dos elementos causa uma grande variação na solução obtida. Estes problemas tendem a ser muito sensíveis em relação a erros de arredondamento.
-
-Os quatro números de condicionamento mais usuais são:
-
-(1) $\mathcal{N}(A) = \|A\|_e \|A^{−1}\|_e$ em que $\|A\|_e=\left(\sum_{i=1}^n \sum_{j=1}^n a_{ij}^2\right)^{1/2}$ é a norma euclidiana. 
-
-(2) $\mathcal{M}(A) = \|A\|_{1}=\text{max}_{1\le i\le n}\sum_{j=1}^n |a_{ij}|$ é o valor da soma dos valores absolutos dos elemento das linhas $i$ da matriz $A$ que apresenta o maior valor.
-
-(3) $\mathcal{P}(A) =\frac{\max |\lambda_i|}{\min |\lambda_i|}$, sendo $\lambda_i$ são valores característico de $A$ em módulo (ou da parte real dos mesmos).
-
-(4) $\mathcal{K}(A)=\frac{\sigma_{max} (A)}{\sigma_{max} (A)}$, sendo $\sigma(A)$ são os valores singulares de $A$ ou a raiz quadrada dos valores característicos de $AA^T$.
-
-Valores elevados dos números de condicionamento são indicativos de dificuldades numéricas na resolução do sistema e na inversão da matriz $A$.
-
----
-[^1] número de vetores coluna linearmente independente
-"""
-
-# ╔═╡ f5b9a61a-f4e1-4031-ba2c-8a1de6c30116
-details(
-	md"""**Ex.1.** Considere o sistema linear dado por
-
-	$$\begin{cases}0.0003 x_1 + 3 x_2 = 1.0002\\ x_1 + x_2 = 1\end{cases}$$
-
-	Analise o condicionamento do sistemas através de $\mathcal{N}$.
-	""",
-	md"""A matriz do sistema é dado por:
-
-	$$A = \begin{bmatrix}0.0003 & 3\\ 1 & 1\end{bmatrix}$$
-
-	A inversa de $A$ é:
-
-	$$A^{-1} = \begin{bmatrix}-\frac{1}{0.0003\times 9999} &\frac{10000}{9999}\\ \frac{1}{0.0003\times 9999}& -\frac{1}{9999}\end{bmatrix}$$
-	
-	Logo, $\|A\|_e=\left(0.0003^2 + 3^3 + 1^2 + 1^2\right)^{1/2} = 3.3166$ e  $\|A^{-1}\|_e=1.1057$
-	
-	O número de condicionamento $\mathcal{M}$ é:
-	
-	$$\mathcal{M}(A)=(3.3166)1.1057\approx 3.6672$$
-
-	Este número de condição relativamente pequeno mostra que a matriz $A$ é bem condicionada (*well-condition*). Entretanto, este problema é sensível à precisão da aritmética (ou seja, efeitos de arredondamento), mesmo que seja bem condicionada. Este é um problema de precisão, não um problema de condição, para confirmar isso, resolver o sistema considerando 2, 4, 6 e 8 casas de precisão. 
-	"""
-)
-
-# ╔═╡ 41455aec-3c97-48a4-80c0-a3b083d39a00
-details(
-	md"""**Ex.2.** Analisar o condicionamento do sistema algébrico linear[^2]
-	
-	$$\begin{cases}10 x_1 + 7 x_2 + 8 x_3 + 7 x_4 = 32\\ 7 x_1 + 5 x_2 + 6 x_3 + 5 x_4 = 23\\ 8 x_1 + 6 x_2 + 10 x_3 + 9 x_4 = 33\\ 7 x_1 + 5 x_2 + 9 x_3 + 10 x_4 = 31\end{cases}$$
-	
-	---
-	[^2] Marcus, M. (1960). *Basic Theorems in Matrix Theory*. 1a edição. Volume 57. New York: Applied Mathematics Series, National Bureau of Standards 
-	""",
-	md"""A matriz $A$ é
-
-	$$A=\begin{bmatrix}10 & 7 & 8 & 7\\ 7 & 5 & 6 & 5\\ 8 & 6 & 10 & 9\\ 7 & 5 & 9 & 10\end{bmatrix}$$
-	
-	
-	Os quatro números de condicionamento do problema são:
-
-	$$\mathcal{M}(A)=4488$$
-	$$\mathcal{N}(A)=3009.579$$
-	$$\mathcal{P}(A)=2984.093$$
-	$$\mathcal{K}(A)=2984.093$$
-
-	Tais valores elevados indicam que o problema é *mau condicionamento*. Os últimos dois números de condicionamento são iguais para matrizes simétrica.
-	"""
-)
-
-# ╔═╡ 495dbfdb-a23a-4699-b522-2873abf21543
-md"""
-## Métodos de resolução
-
-Existe uma grande variedade de métodos para resolução de sistemas lineares, sendo muitos deles dependentes da estrutura da matriz $A$ (matriz densa, esparsa, simétrica, tri-diagonal, bloco-diagonal, etc.). Os métodos são classificados em:
-
-- Métodos diretos
-- Métodos iterativos
-
-Como as equações de sistemas de equações algébricas envolvem variáveis de diversas ordens de grandeza é importante, antes de aplicar qualquer procedimento de resolução, realizar *um reescalamento* das mesmas de modo a mantê-las com ordens de grandeza semelhantes. Um dos **métodos de reescalamento é o adimensionamento** que, além de reduzir a escala das variáveis, **torna o problema independente de sistema de unidades**.
-
-### Métodos diretos
-
-Métodos que após um número conhecido de passos encontra-se, caso exista, a solução do sistema. Os métodos diretos mais conhecidos (não por totalidade) para a resolução de sistemas lineares são:
-
-- Eliminação de Gauss(-Jordan)
-- Regra de Cramer
-- Fatorações ($LU, LL^T, LDL^T, QR,\dots$)
-- Método de Thomas
-
-A princípio, os métodos de eliminação poderiam ser aplicados para qualquer sistema. No entanto, existem alguns problemas que limitam a utilização destes métodos para certas classes de problemas, especialmente envolvendo um grande número de equações.
-
-#### Eliminação de Gauss(-Jordan)
-
-A finalidade do Método de **Eliminação de Gauss** é reduzir a matriz $A$ a uma *estrutura triangular* (método de triangularização) ou diagonal (Método de **Eliminação de Gauss-Jordan**) através de operações da álgebra elementar. O método de diagonalização pode ser implementado pelo algoritmo.
-
-A eliminação de Gauss essencialmente transforma o sistema de equações em:
-
-$$\begin{bmatrix}a_{11} &a_{12} &\cdots &a_{1m}\\
-				 0 &a_{22} &\cdots &a_{2m}\\
-				 0 & \vdots & \ddots &\vdots\\
-				0 & 0 &\cdots &a_{nm}
-\end{bmatrix} \begin{bmatrix}x_1\\ x_2\\ \vdots\\ x_m\end{bmatrix} = 
-\begin{bmatrix}b_1\\ b_2\\ \vdots\\ b_n\end{bmatrix}$$
-
----
-
-**Diagonalização - algoritmo**
-
-$\text{Entre com n (dimensão do sistema)\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad}$
-
-$\text{Definindo }A = a_{ij}\text{ e }b=b_{ij}\text{ com }i,j=1,2,\dots ,n\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$\text{Construir a matriz }A_{aumentada}=[A|b]\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$\text{Para }i=1,2,\dots , n\text{, faça}\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$\alpha\leftarrow a_{ii}\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$\text{Para }j=1,2,\dots , n+1\text{, faça}\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$a_{ij}\leftarrow \frac{a_{ij}}{\alpha} \qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$\text{Para }k=1,2,\dots , n\wedge k\ne i\text{, faça}\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$\alpha\leftarrow a_{ki} \qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$\text{Para }j=1,2,\dots , n+1\text{, faça}\qquad\qquad\qquad\qquad\qquad\qquad\quad$
-
-$a_{kj}\leftarrow a_{kj}-\alpha a_{ij} \qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
----
-"""
-
-# ╔═╡ 3c72ab8f-21f6-43c1-ba8b-a46bb2337aac
-md"""
-A eliminação de Gauss–Jordan resolve sistemas de equações reduzindo o sistema à $A_{aumentada} = [I|b]$. O método de triangularização pode ser implementado pelo algoritmo.
-
----
-
-**Triangularização - algoritmo**
-
-$\text{Entre com n (dimensão do sistema)\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad}$
-
-$\text{Definindo }A = a_{ij}\text{ e }b=b_{ij}\text{ com }i,j=1,2,\dots ,n\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$\text{Construir a matriz }A_{aumentada}=[A|b]\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$\text{Para }i=1,2,\dots , n\text{, faça}\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$\alpha\leftarrow a_{ii}\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$\text{Para }j=1,2,\dots , n+1\text{, faça}\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$a_{ij}\leftarrow \frac{a_{ij}}{\alpha} \qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$\text{Para }k=i+1,\dots , n\wedge i< n\text{, faça}\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$\alpha\leftarrow a_{ki} \qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$\text{Para }j=1,2,\dots , n+1\text{, faça}\qquad\qquad\qquad\qquad\qquad\qquad\quad$
-
-$a_{kj}\leftarrow a_{kj}-\alpha a_{ij} \qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$x_n\leftarrow a_{n n+1} \qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$\text{Para }i=n-1,n-2,\dots , 0\text{, faça}\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$x_i\leftarrow a_{in+1} \qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$\text{Para }j=i+1,\dots , n\text{, faça}\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$x_i\leftarrow x_i-a_{ij}x_j \qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-
----
+Assim temos que $\mathcal{T}:\mathbb{R}^2\rightarrow\mathbb{R}^2$ com $\mathcal{T}(x)=Mx=f$
 
 """
 
-# ╔═╡ 8fd08df3-8e7a-4ccb-aa27-5e7a5e0cea05
+# ╔═╡ 96305bbb-f211-4b53-9a91-a80565841fcd
 md"""
-#### Regra de Cramer
+### Composição de transformações lineares
 
-Embora não seja um método de eliminação, a regra de Cramer é um método direto para resolver sistemas de equações algébricas lineares. A regra de Cramer afirma que a solução para $x_j\ j = 1,\dots, n$ é dada por:
+Compor duas transformações significa a mesma coisa em álgebra linear que em Cálculo, que é aplica-las em cadeia: $\mathcal{T}\circ\mathcal{U}$ é a transformação que primeiro aplica $\mathcal{U}$, depois aplica $\mathcal{T}$ (**observe a ordem das operações**). Mais precisamente, para avaliar $\mathcal{T}\circ\mathcal{U}$ em um vetor de entrada $x$, primeiro avaliamos $\mathcal{U}(x)$, então do vetor de saída de e o usamos como um vetor de entrada para $\mathcal{T}$: isto é, $(\mathcal{T}\circ\mathcal{U})(x)=\mathcal{T}(\mathcal{U}(x))$. É notório, que isso só será válido quando as saídas de $\mathcal{U}$ são entradas válidas de $\mathcal{T}$.
 
-$$x_j = \frac{|A_j|}{|A|}$$
+Por exemplo, seja as transformações $\mathcal{T}:\mathbb{R}^3\rightarrow\mathbb{R}^2$ e $\mathcal{U}:\mathbb{R}^2\rightarrow\mathbb{R}^3$,  definidas por:
 
-sendo $|A_j|$ é determinante da matriz $A_j$ que é uma matriz $n\times n$ obtida pela substituição da coluna $j$ da matriz $A$ pelo vetor coluna $b$, e $|A|$ é o determinante da matriz $A$ do sistema linear.
+$$\mathcal{T}(x)=\begin{pmatrix}1 & 1& 0\\ 0 & 1 & 1\end{pmatrix}x\qquad\mathcal{U}(x)=\begin{pmatrix}1 & 0\\ 0 & 1\\1 & 0\end{pmatrix}x$$
 
-Portanto, A regra de Cramer é útil na solução manual de sistemas envolvendo determinantes que possam ser facilmente avaliados.
-"""
+A composição das transformações é $\mathcal{T}\circ\mathcal{U}:\mathbb{R}^2\rightarrow\mathbb{R}^2$, pois aplicando $\mathcal{U}$ para o vetor $(-7\quad 5)^T$, obtemos:
 
-# ╔═╡ 3aafafa4-15d9-41a8-a18c-74424f772368
-md"""
-#### Decomposição LU
+$$\mathcal{U}(x) = \begin{pmatrix}1 & 0\\ 0 & 1\\1 & 0\end{pmatrix}\begin{pmatrix}-7\\5\end{pmatrix}=\begin{pmatrix}-7\\ 5\\-7\end{pmatrix}$$
 
-A ideia deste método consiste em decompor a matriz dos coeficientes ($A$) como o produto de duas matrizes triangulares, uma inferior ($L$) e outra superior ($U$), assim:
+Por fim, aplicando $\mathcal{T}$,
 
-$A = LU$
+$$\mathcal{T}(\mathcal{U}(x)) = \begin{pmatrix}1 & 1& 0\\ 0 & 1 & 1\end{pmatrix}\begin{pmatrix}-7\\ 5\\-7\end{pmatrix}=\begin{pmatrix}-2\\-2\end{pmatrix}$$
 
-Com esta decomposição, convertemos o sistema de equações para a seguinte forma:
+Fazendo o uso das propriedades das transformações lineares, observamos que:
 
-$$\begin{bmatrix}l_{11} & 0 & 0 & \dots & 0\\
-				 l_{21} & l_{22} &  0 & \dots & 0\\
-				 l_{31} & l_{32} &  l_{33} & \dots & 0\\
-				 \vdots & \vdots &  \vdots & \ddots & 0\\
-				 l_{n1} & l_{n2} &  0 & \dots & l_{nn}\\
-\end{bmatrix}\begin{bmatrix}u_{11} & u_{12} & u_{13} & \dots & u_{1n}\\
-				 0 & u_{22} &  u_{23} & \dots & u_{2n}\\
-				 0 & 0 &  u_{33} & \dots & u_{3n}\\
-				 \vdots & \vdots &  \vdots & \ddots & u_{mn}\\
-				 0 & 0 &  0 & \dots & u_{nn}\\
-\end{bmatrix}
-\begin{bmatrix}x_1\\ x_2\\ \vdots\\ x_n\end{bmatrix} = 
-\begin{bmatrix}b_1\\ b_2\\ \vdots\\ b_n\end{bmatrix}$$
+$$\mathcal{T}\circ\mathcal{U}(x) =\begin{pmatrix}1 & 1\\1 & 1\end{pmatrix}(x) = \begin{pmatrix}1 & 1& 0\\ 0 & 1 & 1\end{pmatrix}\begin{pmatrix}1 & 0\\ 0 & 1\\1 & 0\end{pmatrix}(x)$$
 
-O método segue dois passos para obter a solução:
-
-1. **Passo da decomposição LU**. $A$ é decomposta em matrizes triangulares inferior $L$ e superior $U$.
-
-2. **Passo de substituição**. $L$ e $U$ são usadas para determinar a solução $x$ para $b$. Esse passo consiste em duas etapas. Primeiro, resolvemos o sistema por substituição progressiva, dado por
-
-$$L y = b$$
-
-Em seguida, o resultado ($y$) é utilizado no sistema
-
-$$U x = y$$
-
-que pode ser resolvida por substituição regressiva, determinando-se $x$
-
-Para encontrar a solução de $A$ podemos utilizar os método de Doolittle ($L$) e método de Crout ($U$).
-
-Para o particular de a matriz $A$ ser **simétrica e positiva definida**, a fatoração LU pode ser feita pelo **método de Cholesky**.
-
-Em caso da matriz $A$ **não for simétrica e positiva definida** o sistema original é modificado pela multiplicação de ambos os membros por $A^T$ resultando em $Mx = c$, onde $M = A^T A$ e $c = A^T b$, sendo $M$ uma matriz simétrica e positiva definida, possibilitando a aplicação do **método de Cholesky** ao sistema modificado. 
-
-"""
-
-# ╔═╡ e95711c0-786f-4359-ad10-b4dbaeffec1a
-md"""
-#### Método de Thomas
-
-Um caso muito comum em um grande sistema de equações algébricas lineares, é o sistema tridiagonal ou diagonalmente dominante. Este tipo de sistema surge em problemas de Engenharia envolvendo, por exemplo, a modelagem de sistemas envolvendo discretização de equações diferenciais por métodos implícitos. Há vários métodos de eliminação direta para resolver sistemas de equações algébricas lineares que têm padrões especiais na matriz de coeficientes. Esses métodos são geralmente muito eficientes em tempo e armazenamento de computador. Esses métodos devem ser considerados quando a matriz de coeficientes se ajusta ao padrão necessário e quando o armazenamento e/ou tempo de execução do computador são importantes. 
-
-Uma matriz é dita tridiagonal quando possui uma **largura de banda** igual a 3, ou seja, somente a diagonal principal e os elementos vizinhos acima e abaixo são não-nulos. Este tipo de matriz surge naturalmente na resolução de PVC's pelo método de diferenças finitas de EDP's através de métodos implícitos.
-
-De forma geral, um sistema linear tridiagonal $n × n$ pode ser expresso como:
-
-$$T x = b$$
-
-sendo: 
-
-$$T = \begin{bmatrix}
-		a_{11} & a_{12} & 0 & 0 & 0 & \dots & 0 & 0 & 0\\
-		a_{21} & a_{22} & a_{23} & 0 & 0 & \dots & 0 & 0 & 0\\
-		0 & a_{32} & a_{33} & a_{34} & 0 & \dots & 0 & 0 & 0\\
-		0 & 0 & a_{43} & a_{44} & a_{45} & \dots & 0 & 0 & 0\\
-		\vdots & \vdots & \vdots & \vdots & \vdots & \dots & \vdots & \vdots & \vdots\\
-		0 & 0 & 0 & 0 & 0 & \dots & a_{n-1,n-2} & a_{n-1,n-1} & a_{n-1,n}\\
-		0 & 0 & 0 & 0 & 0 & \dots & 0 & a_{n,n-1} & a_{n,n}\\
-\end{bmatrix}$$
-
-Para resolver este tipo de sistema, pode-se utilizar uma versão simplicada do método de eliminação de Gauss conhecida como algoritmo de Thomas. De maneira generalizada, os elementos da diagonal principal após a eliminação passam a
-ser avaliados como:
-
-$$a^*_{ii} = a_{ii} - \frac{a_{i,i-1}}{a_{i-1,i-1}} a_{i-1,i}\qquad\qquad i=1,2,\dots n$$
-
-$$b^*_{i} = b_{i} - \frac{a_{i,i-1}}{a_{i-1,i-1}} b_{i-1}\qquad\qquad\qquad\qquad\qquad$$
-
-sendo $*$ utilizado para indicar o valor novo, obtido após o procedimento.
-
-O método de resolução desta forma modificada de sistemas lineares tri-diagonais é descrita em [TDMA](https://www.cfd-online.com/Wiki/Tridiagonal_matrix_algorithm_-_TDMA_(Thomas_algorithm))
-"""
-
-# ╔═╡ 632df7c9-5da2-4754-8215-4cb382a8fb66
-md"""
-### Métodos iterativos
-
-São métodos que **a partir de uma estimativa inicial da solução** e uma **equação de recorrência, procede iterações** sob uma sequência de vetores que tende à solução do sistema **até atingir certas condições/critérios**.
-
-As técnicas iterativas são **raramente utilizadas** para a resolução de **sistemas algébricos lineares de baixas dimensões**, já que o tempo requerido para obter um mínimo de acurácia na aplicação dessas técnicas ultrapassa o tempo requerido pelas técnicas diretas. Contudo, *para sistemas de dimensões elevadas*, com grande porcentagem de elementos nulos (**sistemas esparsos/matrizes esparsas**), tais técnicas aparecem como alternativas mais eficientes. 
-
-*Sistemas esparsos* de grande porte frequentemente surgem na *resolução numérica de equações diferenciais ordinárias com problemas de valor no contorno e de equações diferenciais parciais*. Da mesma forma que os métodos diretos, existe uma grande variedade de métodos iterativos para resolução iterativa de sistemas algébricos
-lineares.
-
-Reiterando que, os métodos iterativos *começam assumindo um vetor de solução inicial* ($x^o$). O vetor de solução inicial é usado para *gerar um vetor de solução melhorado* (x^n) com base em alguma estratégia para reduzir a diferença entre $x^o$ e o vetor de solução real $x^n$, $\varepsilon^n=|x^o - x^n|$.
-
-Este procedimento é repetido (ou seja, iterado) para convergência. O procedimento é convergente se cada iteração produz aproximações para o vetor de solução que se aproximam do vetor de solução exato conforme o número de iterações aumenta. Métodos iterativos não convergem para todos os conjuntos de equações, nem para todos os arranjos possíveis de um conjunto particular de equações. A dominância diagonal é uma condição suficiente para a convergência da iteração de Jacobi, iteração de Gauss-Seidel e SOR, para qualquer vetor de solução inicial.
-
-Todos os sistemas não singulares de equações algébricas lineares têm uma solução exata. **Métodos iterativos são menos suscetíveis a erros de arredondamento** do que métodos diretos por três razões:
-
-(a) O sistema de equações é diagonalmente dominante,
-(b) o sistema de equações é tipicamente esparso,
-(c) cada iteração através das equações do sistema é independente dos erros de arredondamento da iteração anterior.
-
-Quando resolvido por métodos iterativos, a solução exata de um sistema de equações algébricas lineares é alcançada sintoticamente conforme o número de iterações aumenta. Quando o número de iterações aumenta sem limites, a solução numérica produz a solução exata dentro do limite de arredondamento da maquina ($\epsilon$ da maquina). Tais soluções são ditas corretas para a precisão da máquina. Na maioria das soluções práticas, a precisão da máquina não é necessária!!.
-
-Assim, o processo iterativo deve ser encerrado quando algum tipo de critério (ou critérios) de precisão for satisfeito. Em métodos iterativos, o termo **precisão** se refere ao número de algarismos significativos obtidos nos cálculos, e o termo **convergência** se refere ao ponto no processo iterativo quando a precisão desejada é obtida. Em geral os critério de convergência mais utilizados são:
-
-(i) $res \le \varepsilon$
-
-(ii) $\epsilon_{max} = \max_i|x_i^{k+1}-x_i^k| \le  \varepsilon$
-
-(iii) $\frac{\max_i|x_i^{k+1}-x_i^k|}{x_i^k} \le  \varepsilon$
-
-(iv) $k\le iter_{max}$
-
-
-
-"""
-
-# ╔═╡ b81afc9d-1e5c-43e2-8014-1de200480a1a
-md"""
-#### Método de Jacobi
-
-É o método iterativo **mais simples** para a resolução de sistemas lineares. Apesar de apresentar uma **convergência relativamente lenta**, o método *funciona bem* para
-sistemas esparsos com **grande dominância diagonal**, ou seja, onde os elmentos da diagonal principal são muito maiores que os demais elementos da mesma linha. 
-
-No entanto, este **método não funciona** quando algum elemento da diagonal principal é nulo, logo uma condição necessária é que todos os elementos da diagonal principal sejam não nulos.
-
-Considerando a decomposição da matriz característica do sistema: $A = D−(D−A)$ sendo $D$ a matriz diagonal que contém os elementos da diagonal principal da matriz A, temos:
-
-$$A x =n\Rightarrow Dx + -(D-A)x = b$$
-$$x = D^{-1}(D-A)x + D^{-1}b$$
-
-Para $M=D^{-1}(D-A)$ e $c=D^{-1}b$, chegamos a expressão recurssica
-
-$$x^{k+1}=Mx^k + c\qquad k=0,1,\dots$$
-
-ou na forma indicial:
-
-$$x_i^{k+1} = \frac{b_i - \sum_{j=1\ne i}^n a_{ij}x^k_i}{a_{ii}}\qquad i=1,2,\dots, n\quad k=0,1,\dots$$
-
-sendo $b_i - \sum_{j=1\ne i}^n a_{ij}x^k_i$ é chamado de resíduo da equação ($res$).
-
-"""
-
-# ╔═╡ 1e5876e4-d23d-4f3d-9247-4c3282bd7181
-md"""
-#### Método de Gauss-Seidel
-
-É um método iterativo específico que sempre usa o último valor estimado para cada elemento em x, isto é, primeiro supomos valores iniciais para $x_2, x_3,\dots, x_n$ (**exceto para $x_1$**) e calculamos $x_1$. Usando o $x_1$ calculamos e o resto dos $x$'s (**exceto para $x_2$**), para podermos calcular $x_2$. Continuando da mesma maneira e calculando todos os elementos em $x$ daí concluiremos a primeira iteração. A parte única do método Gauss–Seidel é o uso do valor mais recente para calcular o próximo valor em x.
-
-Em outras palavras, considerando a decomposição da matriz característica do sistema para: $A = L+D+U$ sendo $D$ a **matriz diagonal** que contém os elementos da diagonal principal da matriz $A$, $L$ a **matriz triangular inferior** contendo os elementos sob a diagonal principal da matriz $A$ e $U$ a **matriz triangular superior** contendo os elementos sobre a diagonal principal da matriz $A$, assim:
-
-$$A x = b\Rightarrow D x + (L+U) x = b$$
-$$x = D^{−1} b−D^{−1} L x−D^{−1} U x$$
-
-Desta forma a expressão recurssica é:
-
-$$x^{k+1}=D^{−1} b−D^{−1} L x^{k+1}−D^{−1} U x^k$$
-
-ou
-
-$$x_i^{k+1} = \begin{cases}
-				\frac{b_1 - \sum_{j=2}^n a_{1j}x_j^k}{a_{11}},\text{ para }i=1\\
-				\frac{b_i - \sum_{j=1}^{i-1} a_{ij}x_j^k - \sum_{k=i+1}^n a_{ij}x_j^k}{a_{ii}},\text{ para }i=2,3,\dots, n\\
-			  \end{cases}\qquad k=0,1,2, \dots$$
-
-Fazendo analogia ao método de Jacobi a matrix $M$ no método de Gauss-Seidel é: $M=-(L+D)^{-1}U$
-
-"""
-
-# ╔═╡ 8e69a8f4-eb57-4c46-b974-69f14887dbbe
-let
-	r = range(-6,6,61)
-	md"""
-	x₂⁰: $(@bind x₂0 Slider(r, show_value=true, default=2))
-	"""
-end
-
-# ╔═╡ 1f578319-8c20-47a5-a16a-226713ab8f2a
-let
-	s1(x) = (8.0 - a₁₂ * x)/a₁₁
-	s2(x) = (2.0 - a₂₁ * x)/a₂₂
-	iter = 12
-	sol = zeros(iter+1,2); sol[1,:] = [s1(x₂0) x₂0]
-	for i=2:2:iter
-		sol[i,1] = s1(sol[i-1,2])
-		sol[i,2] = sol[i-1,2]
-		
-		sol[i+1,1] = s1(sol[i-1,2])
-		sol[i+1,2] = s2(sol[i,1])
-	end
-	
-	r = range(-2,6,61)
-	x2_1 = (8.0 .- a₁₁ .* r)./a₁₂
-	x2_2 = (2.0 .- a₂₁ .* r)./a₂₂
-	plot(r, x2_1, c=:red, lw=2, label="$a₁₁ x₁+ $a₁₂ x₂ = 8")
-	plot!(r, x2_2, c=:black, lw=2, label="$a₂₁ x₁+ $a₂₂ x₂ = 2")
-	plot!(sol[:,1], sol[:,2], c=:blue, lw=2, label="iterações G-S")
-	scatter!(sol[:,1], sol[:,2], c=:blue, label=false)
-	xlabel!("x₁")
-	ylabel!("x₂")
-end
-
-# ╔═╡ 2455afff-96bb-44ca-a441-fce03413ac58
-md"""
-#### Método das {Sobre-}Relaxações Sucessivas (SOR)
-
-Este procedimento visa **acelerar a convergência** do método de Gauss-Seidel pela introdução de um *fator de relaxação*, de acordo com o procedimento iterativo:
-
-$$x_i^{k+1}=x_i^k+\omega\left(\hat{x}_i^{k+1}-x_i^k\right)$$
-
-sendo $\hat{x}_i^{k+1}$ é a solução calculada pelo método de Gauss-Seidel. O parâmetro $\omega$ é o fator de relaxação, quando $1 <\omega$ o procedimento é dito de **sobre-relaxação (over-relaxation)** o que *acelera a convergência* do método de Gauss-Seidel (caso seja convergente). Escolhendo-se $0 < \omega < 1$ o método é chamado de **sub-relaxação** e pode *assegurar a convergência de procedimentos iterativos não-convergentes*.
-
-Neste método a matriz $M$ do procedimento iterativo é:
-
-$$M=I−\omega\left[L + D^{−1} U + I\right]$$
-
-"""
-
-# ╔═╡ 40eecf8e-9b2a-46a0-bf5d-6207ad55b9fa
-md"""
----
-
-**CONVERGÊNCIA DO MÉTODO**
-
-A convergência destes 3 métodos iterativos é caracterizada pela matriz de iteração $M$ sendo: convergente se, e somente se, todos os **valores característicos de $M$** possuírem valor absoluto menor que 1. 
-
-A convergência é também assegurada se a norma de $M$ ($\|M\|$) for menor que 1, podendo ser computada por alguma das definições a seguir:
-
----
-"""
-
-# ╔═╡ dd64f6a0-43f6-4fc2-ab14-a1b535dd4c88
-md"""
-
-#### Métodos iterativos baseados em minimização da forma quadrática
-
-Nestes tipos de métodos exige-se que a matriz dos coeficientes $A$ seja **quadrada, simétrica e positiva definida** (todos os autovalores positivos).
-
-O procedimento inicial é: dado o problema original, $A x = b$, este é transformado de forma a **assegurar** que a matriz característica do sistema ($A$) **seja positiva definida e simétrica**, para isto deve-se multiplicar ambos os lados da equação pela matriz $A^T$:
-
-$A x = b\Rightarrow A^T A x = A^T b$ definindo $M = A^T A$ e $c = A^T b$ resulta em:
-
-$$M x = c$$
-
-Desta forma, o problema é então transformado em um **problema de minimização da função quadrática**:
-
-$$\mathcal{S}(x)=\frac{1}{2}x^T M x - c^T x\Rightarrow \nabla\mathcal{S}(x) = M x - c$$
-
-O processo iterativo **é orientado na busca do valor de x que anula** $res=M x - c$, iniciando o procedimento iterativo partindo de $x^0$ calcula-se a seguir $res(x^0) = M x^0 −c$. O próximo valor de $x^{1}$ é buscado na direção $p^0$ com um passo $\pi_o$, isto é:
-
-$$x^1 = x^0 + \pi_op^0\rightarrow res(x^1) = res(x^0) + \pi_oMp^0$$ 
-
-Para minizar $res(x^1)$ este deve ser ortogonal a $p^0$, logo:
-
-$$\pi_o=-\frac{res(x^0)^T p^0}{res(x^0)^TM p^0}$$
-
-Então o valor, inicial ($p^k$), da direção de busca, $p^k$, é escolhido pelo:
-
-1. Método da "descida mais íngreme" (*steepest descent*)
-
-$$p^0 = -\nabla\mathcal{S}(x^0) = -res(x^0)\qquad p^k = -\nabla\mathcal{S}(x^k) = -res(x^k)$$
-
-2. Método conjugado
-
-$$p^k = -res(x^k) + \frac{res(x^k)^T M p^{k-1}}{(p^{k-1})^T M p^0} p^{k-1}$$
-
-Resumidamente:
-
----
-$$x^0\leftarrow\text{valor inicial}\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$$
-
-$res^0\leftarrow M x^0 - c\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$p^0\leftarrow res^0\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$\pi^0\leftarrow -\frac{(res^0)^T p^0}{(p^0)^T M p^0} \qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$x^1\leftarrow x^0+\pi^0 p^0 \qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$res^1\leftarrow res^0+\pi^0 M p^0 \qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$\text{Para }k=1,2,\dots\text{ faça:} \qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$\color{blue}\text{\# para gradientes conjugados...} \qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$incr = \frac{(res^k)^T M p^{k-1}}{(p^{k-1})^T M p^{k-1}} \qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$p^k = - res^k + incr\ p^{k-1} \qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$\color{blue}\text{\# para steepest descent ...} \qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$p^k = - res^k \qquad\qquad\quad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$\pi^k\leftarrow -\frac{(res^k)^T p^k}{(p^k)^T M p^k} \qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$x^{k+1}\leftarrow x^{k}+\pi^{k} p^{k} \qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-$res^{k+1}\leftarrow res^k+\pi^k M p^k \qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad$
-
-
----
+Portanto, se composição das transformações é $\mathcal{S}=\mathcal{T}\circ\mathcal{U}:\mathbb{R}^m\rightarrow\mathbb{R}^n$, sendo $\mathcal{T}:\mathbb{R}^p\rightarrow\mathbb{R}^n$ e $\mathcal{U}:\mathbb{R}^m\rightarrow\mathbb{R}^p$, onde temos que as matrizes transformações são: $\mathcal{T}(x) = Ax$ e $\mathcal{U}(x) = Bx$. Logo, teremos como matriz transformação da composição dada por $\mathcal{S}(x) = C(x) = (AB)(x)$, isto é, a multiplicação entre as natrizes $A$ e $B$.
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
+ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 HypertextLiteral = "ac1192a8-f4b3-4bfe-ba22-af5b92cd3ab2"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
@@ -755,6 +296,7 @@ PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 
 [compat]
+ForwardDiff = "~0.10.38"
 HypertextLiteral = "~0.9.5"
 Plots = "~1.40.9"
 PlutoUI = "~0.7.60"
@@ -766,7 +308,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.10.8"
 manifest_format = "2.0"
-project_hash = "263f9c23cc17a6a1be8a3f3bd1aec61958d66927"
+project_hash = "b2b81d0b58f8c6da2974b1347a489353096da974"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -830,18 +372,22 @@ deps = ["ColorTypes", "FixedPointNumbers", "LinearAlgebra", "Requires", "Statist
 git-tree-sha1 = "a1f44953f2382ebb937d60dafbe2deea4bd23249"
 uuid = "c3611d14-8923-5661-9e6a-0046d554d3a4"
 version = "0.10.0"
+weakdeps = ["SpecialFunctions"]
 
     [deps.ColorVectorSpace.extensions]
     SpecialFunctionsExt = "SpecialFunctions"
-
-    [deps.ColorVectorSpace.weakdeps]
-    SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 
 [[deps.Colors]]
 deps = ["ColorTypes", "FixedPointNumbers", "Reexport"]
 git-tree-sha1 = "64e15186f0aa277e174aa81798f7eb8598e0157e"
 uuid = "5ae59095-9a9b-59fe-a467-6f913c188581"
 version = "0.13.0"
+
+[[deps.CommonSubexpressions]]
+deps = ["MacroTools"]
+git-tree-sha1 = "cda2cfaebb4be89c9084adaca7dd7333369715c5"
+uuid = "bbf7d656-a473-5ed7-a52c-81e309532950"
+version = "0.3.1"
 
 [[deps.Compat]]
 deps = ["TOML", "UUIDs"]
@@ -896,6 +442,18 @@ git-tree-sha1 = "9e2f36d3c96a820c678f2f1f1782582fcf685bae"
 uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 version = "1.9.1"
 
+[[deps.DiffResults]]
+deps = ["StaticArraysCore"]
+git-tree-sha1 = "782dd5f4561f5d267313f23853baaaa4c52ea621"
+uuid = "163ba53b-c6d8-5494-b064-1a9d43ac40c5"
+version = "1.1.0"
+
+[[deps.DiffRules]]
+deps = ["IrrationalConstants", "LogExpFunctions", "NaNMath", "Random", "SpecialFunctions"]
+git-tree-sha1 = "23163d55f885173722d1e4cf0f6110cdbaf7e272"
+uuid = "b552c78f-8df3-52c6-915a-8e097449b14b"
+version = "1.15.1"
+
 [[deps.DocStringExtensions]]
 deps = ["LibGit2"]
 git-tree-sha1 = "2fb1e02f2b635d0845df5d7c167fec4dd739b00d"
@@ -921,9 +479,9 @@ version = "0.1.11"
 
 [[deps.Expat_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
-git-tree-sha1 = "f42a5b1e20e009a43c3646635ed81a9fcaccb287"
+git-tree-sha1 = "e51db81749b0777b2147fbe7b783ee79045b8e99"
 uuid = "2e619515-83b5-522b-bb60-26c02a35a201"
-version = "2.6.4+2"
+version = "2.6.4+3"
 
 [[deps.FFMPEG]]
 deps = ["FFMPEG_jll"]
@@ -956,6 +514,18 @@ version = "2.15.0+0"
 git-tree-sha1 = "9c68794ef81b08086aeb32eeaf33531668d5f5fc"
 uuid = "1fa38f19-a742-5d3f-a2b9-30dd87b9d5f8"
 version = "1.3.7"
+
+[[deps.ForwardDiff]]
+deps = ["CommonSubexpressions", "DiffResults", "DiffRules", "LinearAlgebra", "LogExpFunctions", "NaNMath", "Preferences", "Printf", "Random", "SpecialFunctions"]
+git-tree-sha1 = "a2df1b776752e3f344e5116c06d75a10436ab853"
+uuid = "f6369f11-7733-5829-9624-2563aa707210"
+version = "0.10.38"
+
+    [deps.ForwardDiff.extensions]
+    ForwardDiffStaticArraysExt = "StaticArrays"
+
+    [deps.ForwardDiff.weakdeps]
+    StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [[deps.FreeType2_jll]]
 deps = ["Artifacts", "Bzip2_jll", "JLLWrappers", "Libdl", "Zlib_jll"]
@@ -1069,9 +639,9 @@ version = "0.21.4"
 
 [[deps.JpegTurbo_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
-git-tree-sha1 = "3447a92280ecaad1bd93d3fce3d408b6cfff8913"
+git-tree-sha1 = "eac1206917768cb54957c65a615460d87b455fc1"
 uuid = "aacddb02-875f-59d6-b918-886e6ef4fbf8"
-version = "3.1.0+1"
+version = "3.1.1+0"
 
 [[deps.LAME_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
@@ -1081,9 +651,9 @@ version = "3.100.2+0"
 
 [[deps.LERC_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
-git-tree-sha1 = "78e0f4b5270c4ae09c7c5f78e77b904199038945"
+git-tree-sha1 = "aaafe88dccbd957a8d82f7d05be9b69172e0cee3"
 uuid = "88015f11-f218-50d7-93a8-a6af411a945d"
-version = "4.0.0+2"
+version = "4.0.1+0"
 
 [[deps.LLVMOpenMP_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
@@ -1093,9 +663,9 @@ version = "18.1.7+0"
 
 [[deps.LZO_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
-git-tree-sha1 = "854a9c268c43b77b0a27f22d7fab8d33cdb3a731"
+git-tree-sha1 = "1c602b1127f4751facb671441ca72715cc95938a"
 uuid = "dd4b983a-f0e5-5f8d-a1b7-129d4a5fb1ac"
-version = "2.10.2+3"
+version = "2.10.3+0"
 
 [[deps.LaTeXStrings]]
 git-tree-sha1 = "dda21b8cbd6a6c40d9d02a73230f9d70fed6918c"
@@ -1165,33 +735,33 @@ version = "1.7.0+0"
 
 [[deps.Libgpg_error_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
-git-tree-sha1 = "a7f43994b47130e4f491c3b2dbe78fe9e2aed2b3"
+git-tree-sha1 = "df37206100d39f79b3376afb6b9cee4970041c61"
 uuid = "7add5ba3-2f88-524e-9cd5-f83b8a55f7b8"
-version = "1.51.0+2"
+version = "1.51.1+0"
 
 [[deps.Libiconv_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
-git-tree-sha1 = "61dfdba58e585066d8bce214c5a51eaa0539f269"
+git-tree-sha1 = "be484f5c92fad0bd8acfef35fe017900b0b73809"
 uuid = "94ce4f54-9a6c-5748-9c1c-f9c7231a4531"
-version = "1.17.0+1"
+version = "1.18.0+0"
 
 [[deps.Libmount_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
-git-tree-sha1 = "d841749621f4dcf0ddc26a27d1f6484dfc37659a"
+git-tree-sha1 = "89211ea35d9df5831fca5d33552c02bd33878419"
 uuid = "4b2f31a3-9ecc-558c-b454-b3730dcb73e9"
-version = "2.40.2+1"
+version = "2.40.3+0"
 
 [[deps.Libtiff_jll]]
 deps = ["Artifacts", "JLLWrappers", "JpegTurbo_jll", "LERC_jll", "Libdl", "XZ_jll", "Zlib_jll", "Zstd_jll"]
-git-tree-sha1 = "b404131d06f7886402758c9ce2214b636eb4d54a"
+git-tree-sha1 = "4ab7581296671007fc33f07a721631b8855f4b1d"
 uuid = "89763e89-9b03-5906-acba-b20f662cd828"
-version = "4.7.0+0"
+version = "4.7.1+0"
 
 [[deps.Libuuid_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
-git-tree-sha1 = "9d630b7fb0be32eeb5e8da515f5e8a26deb457fe"
+git-tree-sha1 = "e888ad02ce716b319e6bdb985d2ef300e7089889"
 uuid = "38a345b3-de98-5d2b-a5d3-14cd9215e700"
-version = "2.40.2+1"
+version = "2.40.3+0"
 
 [[deps.LinearAlgebra]]
 deps = ["Libdl", "OpenBLAS_jll", "libblastrampoline_jll"]
@@ -1228,10 +798,9 @@ uuid = "6c6e2e6c-3030-632d-7369-2d6c69616d65"
 version = "0.1.4"
 
 [[deps.MacroTools]]
-deps = ["Markdown", "Random"]
-git-tree-sha1 = "2fa9ee3e63fd3a4f7a9a4f4744a52f4856de82df"
+git-tree-sha1 = "72aebe0b5051e5143a079a4685a46da330a40472"
 uuid = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
-version = "0.5.13"
+version = "0.5.15"
 
 [[deps.Markdown]]
 deps = ["Base64"]
@@ -1268,9 +837,9 @@ version = "2023.1.10"
 
 [[deps.NaNMath]]
 deps = ["OpenLibm_jll"]
-git-tree-sha1 = "0877504529a3e5c3343c6f8b4c0381e57e4387e4"
+git-tree-sha1 = "030ea22804ef91648f29b7ad3fc15fa49d0e6e71"
 uuid = "77ba4419-2d1f-58cd-9bb1-8ffee604a2e3"
-version = "1.0.2"
+version = "1.0.3"
 
 [[deps.NetworkOptions]]
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
@@ -1303,6 +872,12 @@ deps = ["Artifacts", "JLLWrappers", "Libdl"]
 git-tree-sha1 = "7493f61f55a6cce7325f197443aa80d32554ba10"
 uuid = "458c3c95-2e84-50aa-8efc-19380b2a3a95"
 version = "3.0.15+3"
+
+[[deps.OpenSpecFun_jll]]
+deps = ["Artifacts", "CompilerSupportLibraries_jll", "JLLWrappers", "Libdl"]
+git-tree-sha1 = "1346c9208249809840c91b26703912dff463d335"
+uuid = "efe28fd5-8261-553b-a9e1-b2916fc3738e"
+version = "0.5.6+0"
 
 [[deps.Opus_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
@@ -1506,11 +1081,28 @@ deps = ["Libdl", "LinearAlgebra", "Random", "Serialization", "SuiteSparse_jll"]
 uuid = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 version = "1.10.0"
 
+[[deps.SpecialFunctions]]
+deps = ["IrrationalConstants", "LogExpFunctions", "OpenLibm_jll", "OpenSpecFun_jll"]
+git-tree-sha1 = "64cca0c26b4f31ba18f13f6c12af7c85f478cfde"
+uuid = "276daf66-3868-5448-9aa4-cd146d93841b"
+version = "2.5.0"
+
+    [deps.SpecialFunctions.extensions]
+    SpecialFunctionsChainRulesCoreExt = "ChainRulesCore"
+
+    [deps.SpecialFunctions.weakdeps]
+    ChainRulesCore = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
+
 [[deps.StableRNGs]]
 deps = ["Random"]
 git-tree-sha1 = "83e6cce8324d49dfaf9ef059227f91ed4441a8e5"
 uuid = "860ef19b-820b-49d6-a774-d7a799459cd3"
 version = "1.0.2"
+
+[[deps.StaticArraysCore]]
+git-tree-sha1 = "192954ef1208c7019899fbf8049e717f92959682"
+uuid = "1e83bf80-4336-4d27-bf5d-d5a4f845583c"
+version = "1.4.3"
 
 [[deps.Statistics]]
 deps = ["LinearAlgebra", "SparseArrays"]
@@ -1584,9 +1176,9 @@ version = "0.4.1"
 
 [[deps.Unitful]]
 deps = ["Dates", "LinearAlgebra", "Random"]
-git-tree-sha1 = "01915bfcd62be15329c9a07235447a89d588327c"
+git-tree-sha1 = "c0667a8e676c53d390a09dc6870b3d8d6650e2bf"
 uuid = "1986cc42-f94f-5a68-af5c-568840ba703d"
-version = "1.21.1"
+version = "1.22.0"
 
     [deps.Unitful.extensions]
     ConstructionBaseUnitfulExt = "ConstructionBase"
@@ -1639,9 +1231,9 @@ version = "1.1.42+0"
 
 [[deps.XZ_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
-git-tree-sha1 = "ecda72ccaf6a67c190c9adf27034ee569bccbc3a"
+git-tree-sha1 = "beef98d5aad604d9e7d60b2ece5181f7888e2fd6"
 uuid = "ffd25f8a-64ca-5728-b0f7-c24cf3aae800"
-version = "5.6.3+1"
+version = "5.6.4+0"
 
 [[deps.Xorg_libICE_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
@@ -1663,9 +1255,9 @@ version = "1.8.6+3"
 
 [[deps.Xorg_libXau_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
-git-tree-sha1 = "2b0e27d52ec9d8d483e2ca0b72b3cb1a8df5c27a"
+git-tree-sha1 = "e9216fdcd8514b7072b43653874fd688e4c6c003"
 uuid = "0c0b7dd1-d40b-584c-a123-a41640f87eec"
-version = "1.0.11+3"
+version = "1.0.12+0"
 
 [[deps.Xorg_libXcursor_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Xorg_libXfixes_jll", "Xorg_libXrender_jll"]
@@ -1675,9 +1267,9 @@ version = "1.2.3+0"
 
 [[deps.Xorg_libXdmcp_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
-git-tree-sha1 = "02054ee01980c90297412e4c809c8694d7323af3"
+git-tree-sha1 = "89799ae67c17caa5b3b5a19b8469eeee474377db"
 uuid = "a3789734-cfe1-5b06-b2d0-1dd0d9d62d05"
-version = "1.1.4+3"
+version = "1.1.5+0"
 
 [[deps.Xorg_libXext_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Xorg_libX11_jll"]
@@ -1717,9 +1309,9 @@ version = "0.9.11+1"
 
 [[deps.Xorg_libpthread_stubs_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
-git-tree-sha1 = "fee57a273563e273f0f53275101cd41a8153517a"
+git-tree-sha1 = "c57201109a9e4c0585b208bb408bc41d205ac4e9"
 uuid = "14d82f49-176c-5ed1-bb49-ad3f5cbd8c74"
-version = "0.1.1+3"
+version = "0.1.2+0"
 
 [[deps.Xorg_libxcb_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "XSLT_jll", "Xorg_libXau_jll", "Xorg_libXdmcp_jll", "Xorg_libpthread_stubs_jll"]
@@ -1783,9 +1375,9 @@ version = "2.39.0+0"
 
 [[deps.Xorg_xtrans_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
-git-tree-sha1 = "b9ead2d2bdb27330545eb14234a2e300da61232e"
+git-tree-sha1 = "6dba04dbfb72ae3ebe5418ba33d087ba8aa8cb00"
 uuid = "c5fb5394-a638-5e4d-96e5-b29de1b5cf10"
-version = "1.5.0+3"
+version = "1.5.1+0"
 
 [[deps.Zlib_jll]]
 deps = ["Libdl"]
@@ -1794,9 +1386,9 @@ version = "1.2.13+1"
 
 [[deps.Zstd_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
-git-tree-sha1 = "555d1076590a6cc2fdee2ef1469451f872d8b41b"
+git-tree-sha1 = "622cf78670d067c738667aaa96c553430b65e269"
 uuid = "3161d3a3-bdf6-5164-811a-617609db77b4"
-version = "1.5.6+3"
+version = "1.5.7+0"
 
 [[deps.eudev_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg", "gperf_jll"]
@@ -1818,9 +1410,9 @@ version = "3.1.1+1"
 
 [[deps.libaom_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
-git-tree-sha1 = "1827acba325fdcdf1d2647fc8d5301dd9ba43a9d"
+git-tree-sha1 = "522c1df09d05a71785765d19c9524661234738e9"
 uuid = "a4ae2306-e953-59d6-aa16-d00cac43593b"
-version = "3.9.0+0"
+version = "3.11.0+0"
 
 [[deps.libass_jll]]
 deps = ["Artifacts", "Bzip2_jll", "FreeType2_jll", "FriBidi_jll", "HarfBuzz_jll", "JLLWrappers", "Libdl", "Zlib_jll"]
@@ -1859,9 +1451,9 @@ version = "1.18.0+0"
 
 [[deps.libpng_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Zlib_jll"]
-git-tree-sha1 = "b70c870239dc3d7bc094eb2d6be9b73d27bef280"
+git-tree-sha1 = "d7b5bbf1efbafb5eca466700949625e07533aff2"
 uuid = "b53b4c65-9356-5827-b1ea-8c7a1a84506f"
-version = "1.6.44+2"
+version = "1.6.45+1"
 
 [[deps.libvorbis_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Ogg_jll", "Pkg"]
@@ -1905,30 +1497,17 @@ version = "1.4.1+2"
 """
 
 # ╔═╡ Cell order:
-# ╟─8a6c1e60-cc31-11ef-1be9-7b2c18d3e3c5
-# ╟─cf294dd7-a0ca-466b-90d6-2aa1b6b0be43
-# ╟─cc619ca9-fcd0-483e-8bbc-31a24ac977bc
-# ╟─47970e08-997f-4254-bb2f-c97dfeba3390
-# ╟─f26da6de-3267-4159-a9ec-3378c330f615
-# ╟─7133755b-2dc8-4df5-8bee-3a77bad95e1f
-# ╟─5bc77469-45a0-4703-9d0a-e143ba8a53c2
-# ╟─688ff3a6-c085-4085-b349-ab7cd7410276
-# ╟─e1906b69-63d4-4858-9000-0b2083c31ccb
-# ╟─69d1af5c-f6b0-4eb8-93ec-16bb7a2b9f19
-# ╟─f5b9a61a-f4e1-4031-ba2c-8a1de6c30116
-# ╟─41455aec-3c97-48a4-80c0-a3b083d39a00
-# ╟─495dbfdb-a23a-4699-b522-2873abf21543
-# ╟─3c72ab8f-21f6-43c1-ba8b-a46bb2337aac
-# ╟─8fd08df3-8e7a-4ccb-aa27-5e7a5e0cea05
-# ╟─3aafafa4-15d9-41a8-a18c-74424f772368
-# ╟─e95711c0-786f-4359-ad10-b4dbaeffec1a
-# ╟─632df7c9-5da2-4754-8215-4cb382a8fb66
-# ╟─b81afc9d-1e5c-43e2-8014-1de200480a1a
-# ╟─1e5876e4-d23d-4f3d-9247-4c3282bd7181
-# ╟─8e69a8f4-eb57-4c46-b974-69f14887dbbe
-# ╟─1f578319-8c20-47a5-a16a-226713ab8f2a
-# ╟─2455afff-96bb-44ca-a441-fce03413ac58
-# ╟─40eecf8e-9b2a-46a0-bf5d-6207ad55b9fa
-# ╟─dd64f6a0-43f6-4fc2-ab14-a1b535dd4c88
+# ╟─694ec67e-df76-11ef-25c9-f98fe3bc8bc4
+# ╟─eca42475-834a-4753-bcbf-f403c513c6b0
+# ╟─cba51900-7872-4424-b858-041ddb3b7f9c
+# ╟─8b5e9e31-1686-45ca-bf45-95b4545d8611
+# ╟─0815d37d-2244-4a98-9b56-e24b20040604
+# ╟─27a54bbd-a92d-4896-8beb-63dce58b39b5
+# ╟─0c8a05a9-9039-490f-96a7-a5a238abd492
+# ╟─2a7b90b1-1dab-4046-9f06-cc9941d4cd55
+# ╟─2720db9c-40b4-4a76-a605-e8818bff2ff5
+# ╟─d70ed4a0-00e7-4280-a90e-a96689534829
+# ╟─8abfeb67-a294-4b68-8991-18c1566a7bcf
+# ╟─96305bbb-f211-4b53-9a91-a80565841fcd
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
