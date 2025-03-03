@@ -235,7 +235,7 @@ sabemos que a solução geral desta equação é dada por: $y(x) = c_1 e^x + c_2
 begin
 	nc = 3
 	c = range(-9,9,nc);
-	x = range(-5,5,21);
+	x = range(-2.5,2.5,9);
 	sol = zeros(length(c), length(c), length(x))
 	for i=1:nc
 		for j=1:nc
@@ -251,14 +251,14 @@ end
 
 # ╔═╡ 0f1f3a22-14d5-403b-a764-e0fc44806852
 begin
-	scatter([xval], [c1*exp(xval)+c2*exp(3*xval)], color=:red)
+	scatter([xval], [c1*exp(xval)+c2*exp(3*xval)], color=:red, xlabel="x", ylabel="y'")
 	for i=1:nc
 		for j=1:nc
 			plot!(x, sol[i,j,:], leg=false, ls=:dash)
 		end
 	end
 	
-	xlims!(-5,5)
+	xlims!(-2.5,2.5)
 	ylims!(-350,350)
 end
 

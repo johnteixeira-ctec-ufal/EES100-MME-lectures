@@ -197,7 +197,7 @@ end
 
 # ╔═╡ 0f66178d-79ce-4a1c-aecd-e45e72cc0e77
 begin
-	A = [2 1; 0 1]
+	A = [2 0; 0 1]
 	Tv = A*[v0, v1]
 	quiver([0.],[0.],quiver=([Tv[1]], [Tv[2]]), c=:red, label="A.v",lw=3)
 	quiver!([0.],[0.],quiver=([v0], [v1]), c=:black, label="v", lw=2)

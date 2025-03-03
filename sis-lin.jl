@@ -271,7 +271,7 @@ Valores elevados dos números de condicionamento são indicativos de dificuldade
 details(
 	md"""**Ex.1.** Considere o sistema linear dado por
 
-	$$\begin{cases}0.0003 x_1 + 3 x_2 = 1.0002\\ x_1 + x_2 = 1\end{cases}$$
+	$$\begin{cases}0.0002 x_1 + 1 x_2 = 1.0002\\ x_1 + x_2 = 2\end{cases}$$
 
 	Analise o condicionamento do sistemas através de $\mathcal{N}$.
 	""",
@@ -285,9 +285,9 @@ details(
 	
 	Logo, $\|A\|_e=\left(0.0003^2 + 3^3 + 1^2 + 1^2\right)^{1/2} = 3.3166$ e  $\|A^{-1}\|_e=1.1057$
 	
-	O número de condicionamento $\mathcal{M}$ é:
+	O número de condicionamento $\mathcal{N}$ é:
 	
-	$$\mathcal{M}(A)=(3.3166)1.1057\approx 3.6672$$
+	$$\mathcal{N}(A)=(3.3166)1.1057\approx 3.6672$$
 
 	Este número de condição relativamente pequeno mostra que a matriz $A$ é bem condicionada (*well-condition*). Entretanto, este problema é sensível à precisão da aritmética (ou seja, efeitos de arredondamento), mesmo que seja bem condicionada. Este é um problema de precisão, não um problema de condição, para confirmar isso, resolver o sistema considerando 2, 4, 6 e 8 casas de precisão. 
 	"""
