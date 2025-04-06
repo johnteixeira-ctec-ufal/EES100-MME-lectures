@@ -985,7 +985,9 @@ let
 
 	prob = ODEProblem(springmass!, [.5, 0], [0.0, 50.0])
 	sol = solve(prob)
-	plot(sol, idxs = (0, 1), label=false, title="Sistema Massa-Mola")
+	plt = plot(layout=grid(1,2), size=(1100, 500), leg=false)
+	plot!(plt[1], sol, idxs = (0, 1), lw=3, label=false, title="Sistema Massa-Mola")
+	plot!(plt[2], sol, idxs = (1, 2), lw=3, label=false, xlabel="Deslocamentos [m]", ylabel="Velocidade [m/s]", title="Phase Portrait")
 end
 
 # ╔═╡ 8dec3c53-d007-4d0c-bdc2-e2c9e59be024
@@ -1030,7 +1032,9 @@ let
 
 	prob = ODEProblem(springmassdamper!, [.5, 0], (0.0, 10.0),[5.0, 0.125,])
 	sol = solve(prob)
-	plot(sol, idxs = (0, 1), label=false, title="Sistema Massa-Mola-amortecedor")
+	plt = plot(layout=grid(1,2), size=(1200, 500), leg=false)
+	plot!(plt[1], sol, idxs = (0, 1), lw=3, label=false, title="Sistema Massa-Mola-amortecedor")
+	plot!(plt[2], sol, idxs = (1, 2), lw=3, label=false, xlabel="Deslocamentos [m]", ylabel="Velocidade [m/s]", title="Phase Portrait")
 end
 
 # ╔═╡ 2f688dc7-8b92-4d2c-b830-184464f6d068
